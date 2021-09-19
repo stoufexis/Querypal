@@ -8,7 +8,7 @@ object Common {
 
   trait Model[B] {
     val table: Fragment
-    val toTuples: (entity: B) => List[FieldValue]
+    def mapper(entity: B): List[FieldValue]
   }
 
   trait Completable[A](
