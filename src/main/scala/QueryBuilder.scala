@@ -13,8 +13,8 @@ final class QueryBuilder[A, B <: Model[A]](model: B) {
   def insert: Insert[A, B] =
     Insert(List(sql"insert into ", sql"${model.table} "), model = model)
 
-  // def update: Update[A] =
-  //   Update(sql"update ", sql"${model.table} ", model = model)
+  def update: Update[A, B] =
+    Update(List(sql"update ", sql"${model.table} "), model = model)
 
 }
 

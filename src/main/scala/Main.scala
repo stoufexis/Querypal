@@ -22,7 +22,7 @@ object PersonModel extends Model[Person] {
   val age: Field[Int]     = Field(sql"age")
   val table               = sql"person"
 
-  val toTuples = (entity: Person) =>
+  def mapper(entity: Person): List[FieldValue] =
     List(
       FieldValue(name, sql"${entity.name}"),
       FieldValue(age, sql"${entity.age}")
@@ -43,8 +43,16 @@ object Main extends IOApp {
     // for
     //   query <- IO(
     //     QueryBuilder(PersonModel)
-    //       .insert(_(Person("Jack2", 14)))
+    //       .insert(_(Person("Jack3", 14)))
     //       .complete
+    //   )
+    //   _ <- IO.println(query)
+    //   _ <- query.update.run
+    //     .transact(xa)
+    // yield ExitCode.Success
+    // for
+    //   query <- IO(
+    //     QueryBuilder(PersonModel).delete.where(_.age gt 14).complete
     //   )
     //   _ <- IO.println(query)
     //   _ <- query.update.run
@@ -52,13 +60,15 @@ object Main extends IOApp {
     // yield ExitCode.Success
     for
       query <- IO(
-        QueryBuilder(PersonModel).delete.where(_.age gt 14).complete
+        QueryBuilder(PersonModel)
+          .update(_(Person("Jok", 15)))
+          .where(_.name eqls "Jack3")
+          .complete
       )
       _ <- IO.println(query)
       _ <- query.update.run
         .transact(xa)
     yield ExitCode.Success
-
   // val query2 =
   //   QueryBuilder(PersonModel)
   //     .insert(model => (model.age value 14) and (model.name value "aasd"))

@@ -1,21 +1,24 @@
 import doobie.util.fragment.Fragment
-// import Common._
+import doobie.implicits._
+import Common._
+import cats.implicits._
 
-type Setting = Fragment
+final class Update[A, B <: Model[A]](contents: List[Fragment], model: B) {
+  def apply(
+      f: (A => List[FieldValue]) => List[FieldValue]
+  ): NonCompletableWhere[A, B] =
+    Where(
+      contents ++ (sql"set " +:
+        f(model.toTuples).flatMap { case FieldValue(field, value) =>
+          List(field.name, sql" = ", value, sql", ")
+        }).dropRight(1) :+ sql" ",
+      model
+    )
 
-// final class Update[A <: Model](command: String, table: String, model: A) {
-//   def apply(f: A => List[Setting]): NonCompletableWhere[A] =
-//     Where(
-//       command,
-//       table,
-//       "set " +: List(f(model).mkString(", ").dropRight(1)),
-//       model
-//     )
+}
 
-// }
+object Update {
+  def apply[A, B <: Model[A]](contents: List[Fragment], model: B) =
+    new Update(contents, model)
 
-// object Update {
-//   def apply[A <: Model](command: String, table: String, model: A) =
-//     new Update(command, table, model)
-
-// }
+}
