@@ -9,7 +9,7 @@ final class Update[A, B <: Model[A]](contents: List[Fragment], model: B) {
   ): NonCompletableWhere[A, B] =
     Where(
       contents ++ (sql"set " +:
-        f(model.toTuples).flatMap { case FieldValue(field, value) =>
+        f(model.mapper).flatMap { case FieldValue(field, value) =>
           List(field.name, sql" = ", value, sql", ")
         }).dropRight(1) :+ sql" ",
       model

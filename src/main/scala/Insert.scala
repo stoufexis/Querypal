@@ -13,8 +13,8 @@ final class Insert[A, B <: Model[A]](
   def apply(
       f: (A => List[FieldValue]) => List[FieldValue]
   ): Completable[A] =
-    val names: List[Fragment]  = f(model.toTuples).map(as => as._1.name)
-    val values: List[Fragment] = f(model.toTuples).map(as => as._2)
+    val names: List[Fragment]  = f(model.mapper).map(as => as._1.name)
+    val values: List[Fragment] = f(model.mapper).map(as => as._2)
 
     val foldedFields = sql"(" |+| names
       .drop(1)
