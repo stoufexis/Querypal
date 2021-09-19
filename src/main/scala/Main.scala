@@ -22,8 +22,6 @@ object PersonModel extends Model[Person] {
   val age: Field[Int]     = Field(sql"age")
   val table               = sql"person"
 
-  val entity = Person
-
   val toTuples = (entity: Person) =>
     List(
       FieldValue(name, sql"${entity.name}"),
@@ -42,11 +40,19 @@ object Main extends IOApp {
     //       .transact(xa)
     //     _ <- IO(people.foreach(println(_)))
     //   yield ExitCode.Success
+    // for
+    //   query <- IO(
+    //     QueryBuilder(PersonModel)
+    //       .insert(_(Person("Jack2", 14)))
+    //       .complete
+    //   )
+    //   _ <- IO.println(query)
+    //   _ <- query.update.run
+    //     .transact(xa)
+    // yield ExitCode.Success
     for
       query <- IO(
-        QueryBuilder(PersonModel)
-          .insert(_(Person("Jack2", 14)))
-          .complete
+        QueryBuilder(PersonModel).delete.where(_.age gt 14).complete
       )
       _ <- IO.println(query)
       _ <- query.update.run
