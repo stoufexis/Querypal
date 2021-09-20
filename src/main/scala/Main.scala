@@ -17,7 +17,7 @@ val xa = Transactor.fromDriverManager[IO](
 
 case class Person(name: String, age: Int)
 
-object PersonModel extends Model[Person] {
+object PersonFields extends Fields {
   val name: Field[String] = Field(sql"name")
   val age: Field[Int]     = Field(sql"age")
 }
@@ -27,10 +27,12 @@ object PersonMeta extends ModelMeta[Person] {
 
   def mapper(entity: Person): List[FieldValue] =
     List(
-      FieldValue(PersonModel.name, sql"${entity.name}"),
-      FieldValue(PersonModel.age, sql"${entity.age}")
+      FieldValue(PersonFields.name, sql"${entity.name}"),
+      FieldValue(PersonFields.age, sql"${entity.age}")
     )
 }
+
+val PersonModel = Model(PersonFields, PersonMeta)
 
 object Main extends IOApp {
 
@@ -64,7 +66,7 @@ object Main extends IOApp {
     // yield ExitCode.Success
     for
       query <- IO(
-        QueryBuilder(PersonModel, PersonMeta)
+        QueryBuilder(PersonModel)
           .update(_(Person("Jok", 15)))
           .where(_.age eqls "Jack3")
           .complete

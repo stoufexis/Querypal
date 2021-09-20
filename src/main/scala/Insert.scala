@@ -5,17 +5,16 @@ import cats.Monoid
 import cats.implicits._
 import doobie.util.fragment.Fragment
 
-final class Insert[A, B <: Model[A]](
+final class Insert[A, B <: Fields](
     contents: List[Fragment],
-    model: B,
-    meta: ModelMeta[A]
+    model: Model[A, B]
 ) {
 
   def apply(
       f: (A => List[FieldValue]) => List[FieldValue]
   ): Completable[A] =
-    val names: List[Fragment]  = f(meta.mapper).map(as => as._1.name)
-    val values: List[Fragment] = f(meta.mapper).map(as => as._2)
+    val names: List[Fragment]  = f(model.meta.mapper).map(as => as._1.name)
+    val values: List[Fragment] = f(model.meta.mapper).map(as => as._2)
 
     val foldedFields = sql"(" |+| names
       .drop(1)
@@ -33,11 +32,10 @@ final class Insert[A, B <: Model[A]](
 }
 
 object Insert {
-  def apply[A, B <: Model[A]](
+  def apply[A, B <: Fields](
       contents: List[Fragment],
-      model: B,
-      meta: ModelMeta[A]
+      model: Model[A, B]
   ) =
-    new Insert(contents, model, meta)
+    new Insert(contents, model)
 
 }

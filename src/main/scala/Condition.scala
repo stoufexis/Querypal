@@ -2,31 +2,28 @@ import Common._
 import doobie.util.fragment.Fragment
 import doobie.implicits._
 
-trait NonCompletableWhere[A, B <: Model[A]] {
+trait Where[A, B <: Fields] {
   def where(f: B => Fragment): Condition[A, B]
 }
 
-final class Where[A, B <: Model[A]](
+final class WhereImpl[A, B <: Fields](
     contents: List[Fragment],
-    model: B,
-    meta: ModelMeta[A]
-) extends Completable[A](contents)
-    with NonCompletableWhere[A, B] {
+    model: Model[A, B]
+) extends Completable[A](contents) {
   def where(f: B => Fragment): Condition[A, B] =
-    Condition(contents ++ List(sql"where ") :+ f(model), model, meta)
+    Condition(contents ++ List(sql"where ") :+ f(model.fields), model)
 }
 
-final class Condition[A, B <: Model[A]](
+final class Condition[A, B <: Fields](
     contents: List[Fragment],
-    model: B,
-    meta: ModelMeta[A]
+    model: Model[A, B]
 ) extends Completable[A](contents) {
 
   def and(f: B => Fragment): Condition[A, B] =
-    Condition(contents ++ List(sql"and ") :+ f(model), model, meta)
+    Condition(contents ++ List(sql"and ") :+ f(model.fields), model)
 
   def or(f: B => Fragment): Condition[A, B] =
-    Condition(contents ++ List(sql"or ") :+ f(model), model, meta)
+    Condition(contents ++ List(sql"or ") :+ f(model.fields), model)
 
   def bind(
       f: Condition[A, B] => Condition[A, B]
@@ -36,24 +33,21 @@ final class Condition[A, B <: Model[A]](
         .dropRight(1)
         .appended(sql"( ")
         .concat(
-          List(f(Condition(List(), model, meta)).complete)
+          List(f(Condition(List(), model)).complete)
         )
         .appended(sql") "),
-      model,
-      meta
+      model
     )
 
 }
 
 object Where {
-  def apply[A, B <: Model[A]](
+  def apply[A, B <: Fields](
       contents: List[Fragment],
-      model: B,
-      meta: ModelMeta[A]
-  ) = new Where(
+      model: Model[A, B]
+  ) = new WhereImpl(
     contents,
-    model,
-    meta
+    model
   )
 }
 

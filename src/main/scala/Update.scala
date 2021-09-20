@@ -3,31 +3,28 @@ import doobie.implicits._
 import Common._
 import cats.implicits._
 
-final class Update[A, B <: Model[A]](
+final class Update[A, B <: Fields](
     contents: List[Fragment],
-    model: B,
-    meta: ModelMeta[A]
+    model: Model[A, B]
 ) {
   def apply(
       f: (A => List[FieldValue]) => List[FieldValue]
   ): NonCompletableWhere[A, B] =
     Where(
       contents ++ (sql"set " +:
-        f(meta.mapper).flatMap { case FieldValue(field, value) =>
+        f(model.meta.mapper).flatMap { case FieldValue(field, value) =>
           List(field.name, sql" = ", value, sql", ")
         }).dropRight(1) :+ sql" ",
-      model,
-      meta
+      model
     )
 
 }
 
 object Update {
-  def apply[A, B <: Model[A]](
+  def apply[A, B <: Fields](
       contents: List[Fragment],
-      model: B,
-      meta: ModelMeta[A]
+      model: Model[A, B]
   ) =
-    new Update(contents, model, meta)
+    new Update(contents, model)
 
 }
