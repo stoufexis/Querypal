@@ -17,7 +17,6 @@ final class Update[A, B <: Fields](
         }).dropRight(1) :+ sql" ",
       model
     )
-
 }
 
 object Update {

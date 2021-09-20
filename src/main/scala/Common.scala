@@ -19,5 +19,6 @@ object Common {
       val contents: List[Fragment]
   ) {
     def complete: Fragment = contents.fold(Monoid[Fragment].empty)(_ combine _)
+
   }
 }
