@@ -2,7 +2,7 @@ import Common._
 import doobie.util.fragment.Fragment
 import doobie.implicits._
 
-trait Condition[A, B <: Fields] {
+trait Condition[A, B <: Fields]:
   def and(f: B => Fragment): Condition[A, B] & Completable
 
   def or(f: B => Fragment): Condition[A, B] & Completable
@@ -10,7 +10,7 @@ trait Condition[A, B <: Fields] {
   def bind(
       f: Condition[A, B] => Condition[A, B] & Completable
   ): Condition[A, B] & Completable
-}
+end Condition
 
 final class ConditionImpl[A, B <: Fields](
     contents: List[Fragment],

@@ -1,15 +1,14 @@
 import doobie.implicits._
 import doobie.util.fragment.Fragment
+import Common.Field
 
-case class Field[+B](name: Fragment)
-
-trait FieldOps[A]:
+object FieldOps:
 
   extension (x: Field[Int]) def gt(y: Int) = sql"${x.name} > $y "
 
   extension (x: Field[Int]) def lt(y: Int) = sql"${x.name} < $y "
 
-  extension (x: Field[A])
+  extension [A](x: Field[A])
     def eqls(y: A) = y match
       case z: Int    => sql"${x.name} = ${(z: Int)} "
       case z: String => sql"${x.name} = ${(z: String)} "
@@ -35,5 +34,3 @@ trait FieldOps[A]:
 //     case z: List[Setting] => z :+ y
 
 end FieldOps
-
-given [A]: FieldOps[A] with {}

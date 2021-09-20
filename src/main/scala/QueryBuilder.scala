@@ -14,24 +14,25 @@ trait QueryBuilder[A, B <: Fields] {
 }
 
 final class QueryBuilderImpl[A, B <: Fields](
-    content: List[Fragment] = List(),
     model: Model[A, B]
 ) extends QueryBuilder[A, B] {
 
+  val tableName = model.meta.table
+
   def select: Where[A, B] & Completable =
     Where(
-      content ++ List(sql"select * from ", sql"${model.meta.table} "),
+      List(sql"select * from ", sql"${tableName} "),
       model
     )
 
   def delete: Where[A, B] =
-    Where(content ++ List(sql"delete from ", sql"${model.meta.table} "), model)
+    Where(List(sql"delete from ", sql"${tableName} "), model)
 
   def insert: Insert[A, B] =
-    Insert(content ++ List(sql"insert into ", sql"${model.meta.table} "), model)
+    Insert(List(sql"insert into ", sql"${tableName} "), model)
 
   def update: Update[A, B] =
-    Update(content ++ List(sql"update ", sql"${model.meta.table} "), model)
+    Update(List(sql"update ", sql"${tableName} "), model)
 
 }
 
