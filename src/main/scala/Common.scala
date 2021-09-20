@@ -6,7 +6,9 @@ object Common {
   import cats.Monoid
   import cats.implicits._
 
-  trait Model[B] {
+  trait Model[B]
+
+  trait ModelMeta[B] {
     val table: Fragment
     def mapper(entity: B): List[FieldValue]
   }

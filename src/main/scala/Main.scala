@@ -20,14 +20,18 @@ case class Person(name: String, age: Int)
 object PersonModel extends Model[Person] {
   val name: Field[String] = Field(sql"name")
   val age: Field[Int]     = Field(sql"age")
-  val table               = sql"person"
+}
+
+object PersonMeta extends ModelMeta[Person] {
+  val table = sql"person"
 
   def mapper(entity: Person): List[FieldValue] =
     List(
-      FieldValue(name, sql"${entity.name}"),
-      FieldValue(age, sql"${entity.age}")
+      FieldValue(PersonModel.name, sql"${entity.name}"),
+      FieldValue(PersonModel.age, sql"${entity.age}")
     )
 }
+
 object Main extends IOApp {
 
   def run(args: List[String]): IO[ExitCode] =
@@ -60,12 +64,12 @@ object Main extends IOApp {
     // yield ExitCode.Success
     for
       query <- IO(
-        QueryBuilder(PersonModel)
+        QueryBuilder(PersonModel, PersonMeta)
           .update(_(Person("Jok", 15)))
-          .where(_.name eqls "Jack3")
+          .where(_.age eqls "Jack3")
           .complete
       )
-      _ <- IO.println(query)
+      _ <- IO.println(query.toString)
       _ <- query.update.run
         .transact(xa)
     yield ExitCode.Success
