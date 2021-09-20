@@ -5,10 +5,10 @@ import cats.Monoid
 import cats.implicits._
 import doobie.util.fragment.Fragment
 
-final class Insert[A, B <: Model[A], C <: ModelMeta[A]](
+final class Insert[A, B <: Model[A]](
     contents: List[Fragment],
     model: B,
-    meta: C
+    meta: ModelMeta[A]
 ) {
 
   def apply(
@@ -33,10 +33,10 @@ final class Insert[A, B <: Model[A], C <: ModelMeta[A]](
 }
 
 object Insert {
-  def apply[A, B <: Model[A], C <: ModelMeta[A]](
+  def apply[A, B <: Model[A]](
       contents: List[Fragment],
       model: B,
-      meta: C
+      meta: ModelMeta[A]
   ) =
     new Insert(contents, model, meta)
 
