@@ -6,7 +6,7 @@ import doobie.util.fragment.Fragment
 import cats.effect.IOApp
 import cats.effect.kernel.Resource.ExitCase
 import cats.effect.ExitCode
-import org.checkerframework.checker.units.qual.s
+import FieldOps._
 
 val xa = Transactor.fromDriverManager[IO](
   "org.postgresql.Driver",                     // driver classname
@@ -17,13 +17,37 @@ val xa = Transactor.fromDriverManager[IO](
 
 case class Person(name: String, age: Int)
 
+case class Photo(name: String, photographer: String)
+
+object PhotoFields extends Fields {
+  val name         = Field[String](sql"name")
+  val photographer = Field[String](sql"photographerName")
+}
+
+object PhotoMeta extends ModelMeta[Photo] {
+  val table = Table("photo")
+
+  val pk          = PrimaryKey(PhotoFields.name)
+  override val fk = Some(ForeignKey(PhotoFields.photographer, PersonModel))
+
+  def mapper(entity: Photo): List[FieldValue] =
+    List(
+      FieldValue(PhotoFields.name, sql"${entity.name}"),
+      FieldValue(PhotoFields.photographer, sql"${entity.photographer}")
+    )
+}
+
 object PersonFields extends Fields {
+  val pk = PrimaryKey(name)
+
   val name: Field[String] = Field(sql"name")
   val age: Field[Int]     = Field(sql"age")
 }
 
 object PersonMeta extends ModelMeta[Person] {
-  val table = sql"person"
+  val table = Table("photo")
+
+  val pk = PrimaryKey(PersonFields.name)
 
   def mapper(entity: Person): List[FieldValue] =
     List(
@@ -68,7 +92,7 @@ object Main extends IOApp {
       query <- IO(
         QueryBuilder(PersonModel)
           .update(_(Person("Jok", 15)))
-          .where(_.age eqls "Jack3")
+          .where(_.age gt 13)
           .complete
       )
       _ <- IO.println(query.toString)
