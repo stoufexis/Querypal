@@ -29,38 +29,16 @@ final class Condition[A, B <: Model[A], C <: ModelMeta[A]](
     Condition(contents ++ List(sql"or ") :+ f(model), model, meta)
 
   def bind(
-      f: InternalCondition[A, B, C] => InternalCondition[A, B, C]
+      f: Condition[A, B, C] => Condition[A, B, C]
   ): Condition[A, B, C] =
     Condition(
       contents
         .dropRight(1)
         .appended(sql"( ")
         .concat(
-          f(InternalCondition(List(contents.last), model, meta)).conditions
+          List(f(Condition(List(), model, meta)).complete)
         )
         .appended(sql") "),
-      model,
-      meta
-    )
-
-}
-
-final class InternalCondition[A, B <: Model[A], C <: ModelMeta[A]](
-    val conditions: List[Fragment] = List(),
-    model: B,
-    meta: C
-) {
-
-  def and(f: B => Fragment): InternalCondition[A, B, C] =
-    InternalCondition(
-      conditions ++ List(sql"and ") :+ f(model),
-      model,
-      meta
-    )
-
-  def or(f: B => Fragment): InternalCondition[A, B, C] =
-    InternalCondition(
-      conditions ++ List(sql"or ") :+ f(model),
       model,
       meta
     )
