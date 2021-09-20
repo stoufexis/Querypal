@@ -9,7 +9,7 @@ final class Update[A, B <: Fields](
 ) {
   def apply(
       f: (A => List[FieldValue]) => List[FieldValue]
-  ): NonCompletableWhere[A, B] =
+  ): Where[A, B] =
     Where(
       contents ++ (sql"set " +:
         f(model.meta.mapper).flatMap { case FieldValue(field, value) =>

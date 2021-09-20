@@ -6,10 +6,10 @@ final class QueryBuilder[A, B <: Fields](
     model: Model[A, B]
 ) {
 
-  def select: Where[A, B] =
+  def select: Where[A, B] & Completable =
     Where(List(sql"select * from ", sql"${model.meta.table} "), model)
 
-  def delete: NonCompletableWhere[A, B] =
+  def delete: Where[A, B] =
     Where(List(sql"delete from ", sql"${model.meta.table} "), model)
 
   def insert: Insert[A, B] =

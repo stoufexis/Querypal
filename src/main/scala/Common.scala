@@ -15,9 +15,9 @@ object Common {
 
   case class Model[A, B <: Fields](fields: B, meta: ModelMeta[A])
 
-  trait Completable[A](
-      content: List[Fragment]
+  trait Completable(
+      val contents: List[Fragment]
   ) {
-    def complete: Fragment = content.fold(Monoid[Fragment].empty)(_ combine _)
+    def complete: Fragment = contents.fold(Monoid[Fragment].empty)(_ combine _)
   }
 }
