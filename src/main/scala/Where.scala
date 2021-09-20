@@ -1,26 +1,31 @@
 import Common._
 import doobie.util.fragment.Fragment
 import doobie.implicits._
+import FragmentOperations._
+import FragmentOperations.Arguments
 
 trait Where[A, B <: Fields] {
-  def where(f: B => Fragment): Condition[A, B] & Completable
+  def where(f: B => Condition): Conditional[A, B] & Completable
 }
 
 final class WhereImpl[A, B <: Fields](
-    contents: List[Fragment],
+    query: Query,
     model: Model[A, B]
 ) extends Where[A, B]
-    with Completable(contents) {
-  def where(f: B => Fragment): Condition[A, B] & Completable =
-    Condition(contents ++ List(sql"where ") :+ f(model.fields), model)
-}
+    with Completable(query):
+  def where(f: B => Condition): Conditional[A, B] & Completable =
+    Conditional(
+      query.copy(arguments =
+        query.arguments ++ List(Arguments.where) :+ f(model.fields)
+      ),
+      model
+    )
 
-object Where {
+object Where:
   def apply[A, B <: Fields](
-      contents: List[Fragment],
+      query: Query,
       model: Model[A, B]
   ) = new WhereImpl(
-    contents,
+    query,
     model
   )
-}

@@ -2,8 +2,10 @@ import Common._
 
 import doobie.implicits._
 import doobie.util.fragment.Fragment
+import FragmentOperations.Commands
+import FragmentOperations._
 
-trait QueryBuilder[A, B <: Fields] {
+trait QueryBuilder[A, B <: Fields]:
   def select: Where[A, B] & Completable
 
   def delete: Where[A, B]
@@ -11,34 +13,27 @@ trait QueryBuilder[A, B <: Fields] {
   def insert: Insert[A, B]
 
   def update: Update[A, B]
-}
 
 final class QueryBuilderImpl[A, B <: Fields](
     model: Model[A, B]
-) extends QueryBuilder[A, B] {
+) extends QueryBuilder[A, B]:
 
-  val tableName = model.meta.table
+  val table = model.meta.table
 
   def select: Where[A, B] & Completable =
-    Where(
-      List(sql"select * from ", sql"${tableName} "),
-      model
-    )
+    Where(Query(Commands.select, table, List[Argument]()), model)
 
   def delete: Where[A, B] =
-    Where(List(sql"delete from ", sql"${tableName} "), model)
+    Where(Query(Commands.delete, table, List[Argument]()), model)
 
   def insert: Insert[A, B] =
-    Insert(List(sql"insert into ", sql"${tableName} "), model)
+    Insert(Query(Commands.insert, table, List[Argument]()), model)
 
   def update: Update[A, B] =
-    Update(List(sql"update ", sql"${tableName} "), model)
+    Update(Query(Commands.update, table, List[Argument]()), model)
 
-}
-
-object QueryBuilder {
+object QueryBuilder:
   def apply[A, B <: Fields](model: Model[A, B]): QueryBuilder[A, B] =
     new QueryBuilderImpl(
       model = model
     )
-}

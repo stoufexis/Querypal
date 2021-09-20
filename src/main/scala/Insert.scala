@@ -1,3 +1,4 @@
+import FragmentOperations._
 import Common._
 
 import doobie.implicits._
@@ -10,9 +11,9 @@ trait Insert[A, B <: Fields] {
 }
 
 final class InsertImpl[A, B <: Fields](
-    contents: List[Fragment],
+    query: Query,
     model: Model[A, B]
-) extends Insert[A, B] {
+) extends Insert[A, B]:
 
   def apply(
       f: (A => List[FieldValue]) => List[FieldValue]
@@ -20,26 +21,19 @@ final class InsertImpl[A, B <: Fields](
     val names: List[Fragment]  = f(model.meta.mapper).map(as => as._1.name)
     val values: List[Fragment] = f(model.meta.mapper).map(as => as._2)
 
-    val foldedFields = sql"(" |+| names
-      .drop(1)
-      .fold(names.head)((x, y) => x combine (sql", " |+| y)) |+| sql") "
+    val foldedFields = SqlOperations.commaSeparatedParened(names)
 
-    val foldedValues =
-      sql"(" |+| values
-        .drop(1)
-        .fold(values.head)((x, y) => x combine (sql", " |+| y)) |+| sql") "
+    val foldedValues = SqlOperations.commaSeparatedParened(values)
 
     new Completable(
-      contents ++
-        List(foldedFields, sql"values ", foldedValues)
+      query.copy(arguments =
+        query.arguments ++ List(foldedFields, Arguments.values, foldedValues)
+      )
     ) {}
-}
 
-object Insert {
+object Insert:
   def apply[A, B <: Fields](
-      contents: List[Fragment],
+      query: Query,
       model: Model[A, B]
   ) =
-    new InsertImpl(contents, model)
-
-}
+    new InsertImpl(query, model)

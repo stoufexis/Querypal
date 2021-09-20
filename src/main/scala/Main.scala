@@ -6,7 +6,10 @@ import doobie.util.fragment.Fragment
 import cats.effect.IOApp
 import cats.effect.kernel.Resource.ExitCase
 import cats.effect.ExitCode
-import FieldOps._
+import FragmentOperations._
+
+import FragmentOperations.FieldOps._
+import doobie.util.log.LogHandler
 
 val xa = Transactor.fromDriverManager[IO](
   "org.postgresql.Driver",                     // driver classname
@@ -19,13 +22,13 @@ case class Person(name: String, age: Int)
 
 case class Photo(name: String, photographer: String)
 
-object PhotoFields extends Fields {
+case object PhotoFields extends Fields {
   val name         = Field[String](sql"name")
   val photographer = Field[String](sql"photographerName")
 }
 
-object PhotoMeta extends ModelMeta[Photo] {
-  val table = Table("photo")
+case object PhotoMeta extends ModelMeta[Photo] {
+  val table = sql"person "
 
   val pk          = PrimaryKey(PhotoFields.name)
   override val fk = Some(ForeignKey(PhotoFields.photographer, PersonModel))
@@ -37,17 +40,16 @@ object PhotoMeta extends ModelMeta[Photo] {
     )
 }
 
-object PersonFields extends Fields {
+case object PersonFields extends Fields {
   val pk = PrimaryKey(name)
 
   val name: Field[String] = Field(sql"name")
   val age: Field[Int]     = Field(sql"age")
 }
 
-object PersonMeta extends ModelMeta[Person] {
-  val table = Table("photo")
-
-  val pk = PrimaryKey(PersonFields.name)
+case object PersonMeta extends ModelMeta[Person] {
+  val table = sql"person "
+  val pk    = PrimaryKey(PersonFields.name)
 
   def mapper(entity: Person): List[FieldValue] =
     List(
@@ -55,7 +57,6 @@ object PersonMeta extends ModelMeta[Person] {
       FieldValue(PersonFields.age, sql"${entity.age}")
     )
 }
-
 val PersonModel = Model(PersonFields, PersonMeta)
 
 object Main extends IOApp {
@@ -88,16 +89,18 @@ object Main extends IOApp {
     //   _ <- query.update.run
     //     .transact(xa)
     // yield ExitCode.Success
+    implicit val han = LogHandler.jdkLogHandler
+
     for
       query <- IO(
-        QueryBuilder(PersonModel)
-          .update(_(Person("Jok", 15)))
-          .where(_.age gt 13)
-          .complete
+        QueryBuilder(PersonModel).delete
+          .where(_.age lt 15)
+          .or(_.name eqls "Jok2")
+          .construct
       )
+
       _ <- IO.println(query.toString)
-      _ <- query.update.run
-        .transact(xa)
+      _ <- query.update.run.transact(xa)
     yield ExitCode.Success
   // val query2 =
   //   QueryBuilder(PersonModel)
