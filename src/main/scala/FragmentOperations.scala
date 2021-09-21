@@ -21,50 +21,50 @@ object FragmentOperations:
 
   object FieldOps:
 
-    extension (x: Field[Int]) def gt(y: Int): Condition = sql"${x.name} > $y "
+    extension (x: Field[Int]) def gt(y: Int): Condition = fr"${x.name} > $y"
 
-    extension (x: Field[Int]) def lt(y: Int): Condition = sql"${x.name} < $y "
+    extension (x: Field[Int]) def lt(y: Int): Condition = fr"${x.name} < $y"
 
     extension [A](x: Field[A])
       def eqls(y: A): Condition = y match
-        case z: Int    => sql"${x.name} = ${(z: Int)} "
-        case z: String => sql"${x.name} = ${(z: String)} "
+        case z: Int    => fr"${x.name} = ${(z: Int)} "
+        case z: String => fr"${x.name} = ${(z: String)} "
 
   object SqlOperations:
-    def setArgument(fieldValues: List[FieldValue]): SetArgument = ((sql"set " +:
+    def setArgument(fieldValues: List[FieldValue]): SetArgument = ((fr"set" +:
       fieldValues.flatMap { case FieldValue(field, value) =>
-        List(field.name, sql" = ", value, sql", ")
-      }).dropRight(1) :+ sql" ").foldFragments
+        List(field.name, fr" = ", value, fr", ")
+      }).dropRight(1) :+ fr" ").foldFragments
 
     def commaSeparatedParened(content: List[Fragment]): Argument =
-      sql"(" |+| content
+      fr"(" |+| content
         .drop(1)
-        .fold(content.head)((x, y) => x combine (sql", " |+| y)) |+| sql") "
+        .fold(content.head)((x, y) => x combine (fr", " |+| y)) |+| fr")"
 
   object GeneralOperators:
-    def leftParen: Argument  = sql"( "
-    def rightParen: Argument = sql") "
+    def leftParen: Argument  = fr"("
+    def rightParen: Argument = fr")"
 
   object ConditionOperators:
-    val and: ConditionOperator = sql"and "
-    val or: ConditionOperator  = sql"or "
+    val and: ConditionOperator = fr"and"
+    val or: ConditionOperator  = fr"or"
 
   object Commands:
-    val update: Command = sql"update "
-    val insert: Command = sql"insert into "
-    val delete: Command = sql"delete from "
-    val select: Command = sql"select * from "
+    val update: Command = fr"update"
+    val insert: Command = fr"insert into"
+    val delete: Command = fr"delete from"
+    val select: Command = fr"select * from"
 
   object Arguments:
-    val where: Argument  = sql"where "
-    val values: Argument = sql"values "
+    val where: Argument  = fr"where"
+    val values: Argument = fr"values"
 
   opaque type Table = Fragment
 
   object Table:
     def apply(nameStr: String): Table =
       println(nameStr)
-      sql"$nameStr "
+      fr"$nameStr "
 
   trait Completable(query: Query):
     def complete: Argument =

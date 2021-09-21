@@ -12,10 +12,10 @@ import FragmentOperations.FieldOps._
 import doobie.util.log.LogHandler
 
 val xa = Transactor.fromDriverManager[IO](
-  "org.postgresql.Driver",                     // driver classname
-  "jdbc:postgresql://localhost:5432/postgres", // connect URL (driver-specific)
-  "postgres",                                  // user
-  "postgres"                                   // password
+  "org.postgrefr.Driver",                     // driver classname
+  "jdbc:postgrefr://localhost:5432/postgres", // connect URL (driver-specific)
+  "postgres",                                 // user
+  "postgres"                                  // password
 )
 
 case class Person(name: String, age: Int)
@@ -23,38 +23,36 @@ case class Person(name: String, age: Int)
 case class Photo(name: String, photographer: String)
 
 case object PhotoFields extends Fields {
-  val name         = Field[String](sql"name")
-  val photographer = Field[String](sql"photographerName")
+  val name         = Field[String](fr"name")
+  val photographer = Field[String](fr"photographerName")
 }
 
 case object PhotoMeta extends ModelMeta[Photo] {
-  val table = sql"person "
+  val table = fr"person"
 
   val pk          = PrimaryKey(PhotoFields.name)
   override val fk = Some(ForeignKey(PhotoFields.photographer, PersonModel))
 
   def mapper(entity: Photo): List[FieldValue] =
     List(
-      FieldValue(PhotoFields.name, sql"${entity.name}"),
-      FieldValue(PhotoFields.photographer, sql"${entity.photographer}")
+      FieldValue(PhotoFields.name, fr"${entity.name}"),
+      FieldValue(PhotoFields.photographer, fr"${entity.photographer}")
     )
 }
 
 case object PersonFields extends Fields {
-  val pk = PrimaryKey(name)
-
-  val name: Field[String] = Field(sql"name")
-  val age: Field[Int]     = Field(sql"age")
+  val name: Field[String] = Field(fr"name")
+  val age: Field[Int]     = Field(fr"age")
 }
 
 case object PersonMeta extends ModelMeta[Person] {
-  val table = sql"person "
+  val table = fr"person "
   val pk    = PrimaryKey(PersonFields.name)
 
   def mapper(entity: Person): List[FieldValue] =
     List(
-      FieldValue(PersonFields.name, sql"${entity.name}"),
-      FieldValue(PersonFields.age, sql"${entity.age}")
+      FieldValue(PersonFields.name, fr"${entity.name}"),
+      FieldValue(PersonFields.age, fr"${entity.age}")
     )
 }
 val PersonModel = Model(PersonFields, PersonMeta)
