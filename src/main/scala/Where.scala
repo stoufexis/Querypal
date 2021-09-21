@@ -5,7 +5,7 @@ import FragmentOperations._
 import FragmentOperations.Arguments
 
 trait Where[A, B <: Fields] {
-  def where(f: B => Condition): Conditional[A, B] & Completable
+  def apply(f: B => Condition): Conditional[A, B] & Completable
 }
 
 final class WhereImpl[A, B <: Fields](
@@ -13,7 +13,7 @@ final class WhereImpl[A, B <: Fields](
     model: Model[A, B]
 ) extends Where[A, B]
     with Completable(query):
-  def where(f: B => Condition): Conditional[A, B] & Completable =
+  def apply(f: B => Condition): Conditional[A, B] & Completable =
     Conditional(
       query.copy(arguments =
         query.arguments ++ List(Arguments.where) :+ f(model.fields)

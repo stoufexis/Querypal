@@ -7,47 +7,47 @@ import cats.effect.IOApp
 import cats.effect.kernel.Resource.ExitCase
 import cats.effect.ExitCode
 import FragmentOperations._
+import scala.language.postfixOps
 
 import FragmentOperations.FieldOps._
 import doobie.util.log.LogHandler
 
 val xa = Transactor.fromDriverManager[IO](
-  "org.postgrefr.Driver",                     // driver classname
-  "jdbc:postgrefr://localhost:5432/postgres", // connect URL (driver-specific)
-  "postgres",                                 // user
-  "postgres"                                  // password
+  "org.postgresql.Driver",                     // driver classname
+  "jdbc:postgresql://localhost:5432/postgres", // connect URL (driver-specific)
+  "postgres",                                  // user
+  "postgres"                                   // password
 )
+
+// case class Photo(name: String, photographer: String)
+
+// case object PhotoFields extends Fields {
+//   val name         = Field[String](fr"name")
+//   val photographer = Field[String](fr"photographerName")
+// }
+
+// case object PhotoMeta extends ModelMeta[Photo] {
+//   val table = fr"person"
+
+//   val pk          = PrimaryKey(PhotoFields.name)
+//   override val fk = Some(ForeignKey(PhotoFields.photographer, PersonModel))
+
+//   def mapper(entity: Photo): List[FieldValue] =
+//     List(
+//       FieldValue(PhotoFields.name, fr"${entity.name}"),
+//       FieldValue(PhotoFields.photographer, fr"${entity.photographer}")
+//     )
+// }
 
 case class Person(name: String, age: Int)
 
-case class Photo(name: String, photographer: String)
-
-case object PhotoFields extends Fields {
-  val name         = Field[String](fr"name")
-  val photographer = Field[String](fr"photographerName")
-}
-
-case object PhotoMeta extends ModelMeta[Photo] {
-  val table = fr"person"
-
-  val pk          = PrimaryKey(PhotoFields.name)
-  override val fk = Some(ForeignKey(PhotoFields.photographer, PersonModel))
-
-  def mapper(entity: Photo): List[FieldValue] =
-    List(
-      FieldValue(PhotoFields.name, fr"${entity.name}"),
-      FieldValue(PhotoFields.photographer, fr"${entity.photographer}")
-    )
-}
-
 case object PersonFields extends Fields {
-  val name: Field[String] = Field(fr"name")
-  val age: Field[Int]     = Field(fr"age")
+  val name: Field[String] = PrimaryKey(fr"name")
+  val age: Field[Int]     = Column(fr"age")
 }
 
 case object PersonMeta extends ModelMeta[Person] {
   val table = fr"person "
-  val pk    = PrimaryKey(PersonFields.name)
 
   def mapper(entity: Person): List[FieldValue] =
     List(
@@ -91,13 +91,11 @@ object Main extends IOApp {
 
     for
       query <- IO(
-        QueryBuilder(PersonModel).delete
-          .where(_.age lt 15)
-          .or(_.name eqls "Jok2")
-          .construct
+        QueryBuilder(
+          PersonModel
+        ).update set (_.age === 13) set (_.name === "unknown") where (_.age > 14) construct
       )
 
-      _ <- IO.println(query.toString)
       _ <- query.update.run.transact(xa)
     yield ExitCode.Success
   // val query2 =

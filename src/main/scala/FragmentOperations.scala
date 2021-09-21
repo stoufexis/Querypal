@@ -12,6 +12,7 @@ object FragmentOperations:
 
   opaque type ConditionOperator <: Argument = Fragment
   opaque type Condition <: Argument         = Fragment
+  opaque type EqualsCondition <: Condition  = Fragment
   opaque type SetArgument <: Argument       = Fragment
   opaque type InsertArgument <: Argument    = Fragment
 
@@ -21,29 +22,34 @@ object FragmentOperations:
 
   object FieldOps:
 
-    extension (x: Field[Int]) def gt(y: Int): Condition = fr"${x.name} > $y"
+    extension (x: Field[Int]) def >(y: Int): Condition = fr"${x.name} > $y"
 
-    extension (x: Field[Int]) def lt(y: Int): Condition = fr"${x.name} < $y"
+    extension (x: Field[Int]) def <(y: Int): Condition = fr"${x.name} < $y"
 
-    extension [A](x: Field[A])
-      def eqls(y: A): Condition = y match
-        case z: Int    => fr"${x.name} = ${(z: Int)} "
-        case z: String => fr"${x.name} = ${(z: String)} "
+    extension (x: Field[Int]) def ===(y: Int): EqualsCondition = eqls(x, y)
+    extension (x: Field[String])
+      def ===(y: String): EqualsCondition = eqls(x, y)
+
+    private def eqls[A](x: Field[A], y: A): EqualsCondition = y match
+      case z: Int    => fr"${x.name} = ${(z: Int)}"
+      case z: String => fr"${x.name} = ${(z: String)}"
 
   object SqlOperations:
-    def setArgument(fieldValues: List[FieldValue]): SetArgument = ((fr"set" +:
-      fieldValues.flatMap { case FieldValue(field, value) =>
-        List(field.name, fr" = ", value, fr", ")
-      }).dropRight(1) :+ fr" ").foldFragments
+
+    val set: Argument = fr"set"
 
     def commaSeparatedParened(content: List[Fragment]): Argument =
       fr"(" |+| content
         .drop(1)
-        .fold(content.head)((x, y) => x combine (fr", " |+| y)) |+| fr")"
+        .fold(content.head)((x, y) => x combine (fr"," |+| y)) |+| fr")"
+
+  // def setFieldValue(fv: FieldValue): Argument =
+  //   fr"${fv.field.name} = ${fv.value}"
 
   object GeneralOperators:
     def leftParen: Argument  = fr"("
     def rightParen: Argument = fr")"
+    def comma: Argument      = fr","
 
   object ConditionOperators:
     val and: ConditionOperator = fr"and"
@@ -64,7 +70,7 @@ object FragmentOperations:
   object Table:
     def apply(nameStr: String): Table =
       println(nameStr)
-      fr"$nameStr "
+      fr"$nameStr"
 
   trait Completable(query: Query):
     def complete: Argument =
