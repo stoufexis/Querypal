@@ -98,6 +98,26 @@ object Main extends IOApp {
 
       _ <- query.update.run.transact(xa)
     yield ExitCode.Success
+
+    for
+      query <- IO(
+        QueryBuilder(
+          PersonModel
+        ).select where (_.age > 10) bind (_ or (_.age < 5)) construct
+      )
+
+      _ <- query.update.run.transact(xa)
+    yield ExitCode.Success
+
+    for
+      query <- IO(
+        QueryBuilder(
+          PersonModel
+        ) insert (Person("asdd", 45)) construct
+      )
+
+      _ <- query.update.run.transact(xa)
+    yield ExitCode.Success
   // val query2 =
   //   QueryBuilder(PersonModel)
   //     .insert(model => (model.age value 14) and (model.name value "aasd"))

@@ -7,7 +7,7 @@ import cats.implicits._
 import doobie.util.fragment.Fragment
 
 trait Insert[A, B <: Fields] {
-  def apply(f: (A => List[FieldValue]) => List[FieldValue]): Completable
+  def apply(enity: A): Completable
 }
 
 final class InsertImpl[A, B <: Fields](
@@ -16,10 +16,10 @@ final class InsertImpl[A, B <: Fields](
 ) extends Insert[A, B]:
 
   def apply(
-      f: (A => List[FieldValue]) => List[FieldValue]
+      enity: A
   ): Completable =
-    val names: List[Fragment]  = f(model.meta.mapper).map(as => as._1.name)
-    val values: List[Fragment] = f(model.meta.mapper).map(as => as._2)
+    val names: List[Fragment]  = model.meta.mapper(enity).map(as => as._1.name)
+    val values: List[Fragment] = model.meta.mapper(enity).map(as => as._2)
 
     val foldedFields = SqlOperations.commaSeparatedParened(names)
 
