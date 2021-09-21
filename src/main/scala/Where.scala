@@ -22,10 +22,5 @@ final class WhereImpl[A, B <: Fields](
     )
 
 object Where:
-  def apply[A, B <: Fields](
-      query: Query,
-      model: Model[A, B]
-  ) = new WhereImpl(
-    query,
-    model
-  )
+  def apply[A, B <: Fields](query: Query, model: Model[A, B]) =
+    new WhereImpl(query, model)

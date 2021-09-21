@@ -49,10 +49,5 @@ final class ConditionalImpl[A, B <: Fields](
     )
 
 object Conditional:
-  def apply[A, B <: Fields](
-      query: Query,
-      model: Model[A, B]
-  ) = new ConditionalImpl(
-    query,
-    model
-  )
+  def apply[A, B <: Fields](query: Query, model: Model[A, B]) =
+    new ConditionalImpl(query, model)

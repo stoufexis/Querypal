@@ -20,19 +20,26 @@ object FragmentOperations:
     def foldFragments =
       content.fold(Monoid[Fragment].empty)(_ combine _)
 
-  object FieldOps:
+  sealed trait Field[+B] { val name: Fragment }
 
+  case class Column[B](name: Fragment)     extends Field[B]
+  case class PrimaryKey[B](name: Fragment) extends Field[B]
+  case class ForeignKey[B](name: Fragment, references: Model[?, ?])
+      extends Field[B]
+
+  trait FieldOps[A]:
+
+    extension (x: Field[A])
+      def ===(y: A): EqualsCondition = y match
+        case z: Int    => fr"${x.name} = ${(z: Int)}"
+        case z: String => fr"${x.name} = ${(z: String)}"
+
+  given FieldOps[Int] with {
     extension (x: Field[Int]) def >(y: Int): Condition = fr"${x.name} > $y"
 
     extension (x: Field[Int]) def <(y: Int): Condition = fr"${x.name} < $y"
-
-    extension (x: Field[Int]) def ===(y: Int): EqualsCondition = eqls(x, y)
-    extension (x: Field[String])
-      def ===(y: String): EqualsCondition = eqls(x, y)
-
-    private def eqls[A](x: Field[A], y: A): EqualsCondition = y match
-      case z: Int    => fr"${x.name} = ${(z: Int)}"
-      case z: String => fr"${x.name} = ${(z: String)}"
+  }
+  given FieldOps[String] with {}
 
   object SqlOperations:
 

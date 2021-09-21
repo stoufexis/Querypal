@@ -1,16 +1,8 @@
 import doobie.util.fragment.Fragment
 import doobie.implicits._
 import FragmentOperations._
-import Common.Field
 
 object Common:
-
-  sealed trait Field[+B] { val name: Fragment }
-
-  case class Column[B](name: Fragment)     extends Field[B]
-  case class PrimaryKey[B](name: Fragment) extends Field[B]
-  case class ForeignKey[B](name: Fragment, references: Model[?, ?])
-      extends Field[B]
 
   case class FieldValue(field: Field[Any], value: Fragment)
 

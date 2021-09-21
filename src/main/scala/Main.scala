@@ -8,9 +8,12 @@ import cats.effect.kernel.Resource.ExitCase
 import cats.effect.ExitCode
 import FragmentOperations._
 import scala.language.postfixOps
+import reflect.Selectable.reflectiveSelectable
 
-import FragmentOperations.FieldOps._
 import doobie.util.log.LogHandler
+import scala.deriving.Mirror
+import scala.deriving.Mirror.ProductOf
+import scala.util.Random
 
 val xa = Transactor.fromDriverManager[IO](
   "org.postgresql.Driver",                     // driver classname
@@ -47,7 +50,7 @@ case object PersonFields extends Fields {
 }
 
 case object PersonMeta extends ModelMeta[Person] {
-  val table = fr"person "
+  val table = fr"person"
 
   def mapper(entity: Person): List[FieldValue] =
     List(
@@ -109,6 +112,8 @@ object Main extends IOApp {
       _ <- query.update.run.transact(xa)
     yield ExitCode.Success
 
+    // def asd[A, B <: Product](entity: A, entityRef: B) = {}
+
     for
       query <- IO(
         QueryBuilder(
@@ -118,28 +123,8 @@ object Main extends IOApp {
 
       _ <- query.update.run.transact(xa)
     yield ExitCode.Success
-  // val query2 =
-  //   QueryBuilder(PersonModel)
-  //     .insert(model => (model.age value 14) and (model.name value "aasd"))
-  //     .complete
 
-  // val query3 =
-  //   QueryBuilder(PersonModel).delete
-  //     .where(_.age gt 13)
-  //     .complete
+  val Sell = "sell"
+  val Buy  = "buy"
 
-  // val query4 =
-  //   QueryBuilder(PersonModel).select.complete
-
-  // val query5 =
-  //   QueryBuilder(PersonModel)
-  //     .update(model => (model.age set 13) and (model.name set "asdasd"))
-  //     .where(_.age gt 15)
-  //     .or(_.name eqls "AAAAA")
-  //     .complete
-
-  // println(query2)
-  // println(query3)
-  // println(query4)
-  // println(query5)
 }
