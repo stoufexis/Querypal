@@ -4,17 +4,17 @@ import FragmentOperations._
 
 object Common:
 
-  case class FieldValue(field: Field[Any], value: Fragment)
+  type FieldValue = (Field[?, ?], Fragment)
 
   import cats.Monoid
   import cats.implicits._
 
-  trait Fields {}
+  trait Fields[A]
+
+  case class Model[A, B <: Fields[A]](fields: B)
 
   trait ModelMeta[B]:
-    val table: Fragment
+    val table: Table
     def mapper(entity: B): List[FieldValue]
 
-  case class Model[A, +B <: Fields](fields: B, meta: ModelMeta[A])
-
-  case class Query(command: Command, table: Fragment, arguments: List[Argument])
+  case class Query(command: Command, table: Table, arguments: List[Argument])

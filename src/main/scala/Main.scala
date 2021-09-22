@@ -22,11 +22,11 @@ val xa = Transactor.fromDriverManager[IO](
   "postgres"                                   // password
 )
 
-// case class Photo(name: String, photographer: String)
+case class Photo(name: String, photographer: String)
 
 // case object PhotoFields extends Fields {
 //   val name         = Field[String](fr"name")
-//   val photographer = Field[String](fr"photographerName")
+//   val photographer = Field[String](fr"photographer_name")
 // }
 
 // case object PhotoMeta extends ModelMeta[Photo] {
@@ -44,21 +44,20 @@ val xa = Transactor.fromDriverManager[IO](
 
 case class Person(name: String, age: Int)
 
-case object PersonFields extends Fields {
-  val name: Field[String] = PrimaryKey(fr"name")
-  val age: Field[Int]     = Column(fr"age")
+case object PersonFields extends Fields[Person] {
+  val name = PrimaryKey[String, Person](fr"name")
+  val age  = Column[Int, Person](fr"age")
 }
 
-case object PersonMeta extends ModelMeta[Person] {
-  val table = fr"person"
-
-  def mapper(entity: Person): List[FieldValue] =
+given ModelMeta[Person] with
+  val table = Table(fr"person")
+  def mapper(entity: Person) =
     List(
-      FieldValue(PersonFields.name, fr"${entity.name}"),
-      FieldValue(PersonFields.age, fr"${entity.age}")
+      (PersonFields.name -> fr"${entity.name}"),
+      (PersonFields.age  -> fr"${entity.age}")
     )
-}
-val PersonModel = Model(PersonFields, PersonMeta)
+
+val PersonModel = Model(PersonFields)
 
 object Main extends IOApp {
 
@@ -92,25 +91,25 @@ object Main extends IOApp {
     // yield ExitCode.Success
     implicit val han = LogHandler.jdkLogHandler
 
-    for
-      query <- IO(
-        QueryBuilder(
-          PersonModel
-        ).update set (_.age === 13) set (_.name === "unknown") where (_.age > 14) construct
-      )
+    // for
+    //   query <- IO(
+    //     QueryBuilder(
+    //       PersonModel
+    //     ).update set (_.age === 13) set (_.name === "unknown") where (_.age > 14) construct
+    //   )
 
-      _ <- query.update.run.transact(xa)
-    yield ExitCode.Success
+    //   _ <- query.update.run.transact(xa)
+    // yield ExitCode.Success
 
-    for
-      query <- IO(
-        QueryBuilder(
-          PersonModel
-        ).select where (_.age > 10) bind (_ or (_.age < 5)) construct
-      )
+    // for
+    //   query <- IO(
+    //     QueryBuilder(
+    //       PersonModel
+    //     ).select where (_.age > 10) bind (_ or (_.age < 5)) construct
+    //   )
 
-      _ <- query.update.run.transact(xa)
-    yield ExitCode.Success
+    //   _ <- query.update.run.transact(xa)
+    // yield ExitCode.Success
 
     // def asd[A, B <: Product](entity: A, entityRef: B) = {}
 
@@ -118,10 +117,19 @@ object Main extends IOApp {
       query <- IO(
         QueryBuilder(
           PersonModel
-        ) insert (Person("asdd", 45)) construct
+        ).select where (_.age > 13) construct
       )
 
       _ <- query.update.run.transact(xa)
+    yield ExitCode.Success
+
+    for
+      query <-
+        sql"""select * from person left outer join photo on person.name = photo.photographer_name where (person.name = 'Stef' or person.name = 'Stef2')"""
+          .query[(Person, Option[Photo])]
+          .to[List]
+          .transact(xa)
+      _ <- IO.println(query)
     yield ExitCode.Success
 
   val Sell = "sell"

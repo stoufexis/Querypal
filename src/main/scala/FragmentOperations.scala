@@ -18,27 +18,28 @@ object FragmentOperations:
 
   extension (content: List[Fragment])
     def foldFragments =
-      content.fold(Monoid[Fragment].empty)(_ combine _)
+      content.fold(Monoid[Fragment].empty)(_ |+| _)
 
-  sealed trait Field[+B] { val name: Fragment }
+  sealed trait Field[A, B]:
+    val name: Fragment
 
-  case class Column[B](name: Fragment)     extends Field[B]
-  case class PrimaryKey[B](name: Fragment) extends Field[B]
-  case class ForeignKey[B](name: Fragment, references: Model[?, ?])
-      extends Field[B]
+  case class Column[A, B](name: Fragment)     extends Field[A, B]
+  case class PrimaryKey[A, B](name: Fragment) extends Field[A, B]
+  case class ForeignKey[A, B](name: Fragment, references: Model[?, ?])
+      extends Field[A, B]
 
-  trait FieldOps[A]:
-
-    extension (x: Field[A])
+  trait FieldOps[A] {
+    extension [B](x: Field[A, B])
       def ===(y: A): EqualsCondition = y match
         case z: Int    => fr"${x.name} = ${(z: Int)}"
         case z: String => fr"${x.name} = ${(z: String)}"
-
-  given FieldOps[Int] with {
-    extension (x: Field[Int]) def >(y: Int): Condition = fr"${x.name} > $y"
-
-    extension (x: Field[Int]) def <(y: Int): Condition = fr"${x.name} < $y"
   }
+
+  given FieldOps[Int] with
+    extension [B](x: Field[Int, B])
+      def >(y: Int): Condition = fr"${x.name} > $y"
+      def <(y: Int): Condition = fr"${x.name} < $y"
+
   given FieldOps[String] with {}
 
   object SqlOperations:
@@ -48,7 +49,9 @@ object FragmentOperations:
     def commaSeparatedParened(content: List[Fragment]): Argument =
       fr"(" |+| content
         .drop(1)
-        .fold(content.head)((x, y) => x combine (fr"," |+| y)) |+| fr")"
+        .fold(content.head)((x, y) =>
+          x ++ (GeneralOperators.comma ++ y)
+        ) ++ GeneralOperators.rightParen
 
   // def setFieldValue(fv: FieldValue): Argument =
   //   fr"${fv.field.name} = ${fv.value}"
@@ -75,9 +78,7 @@ object FragmentOperations:
   opaque type Table = Fragment
 
   object Table:
-    def apply(nameStr: String): Table =
-      println(nameStr)
-      fr"$nameStr"
+    def apply(name: Fragment): Table = name
 
   trait Completable(query: Query):
     def complete: Argument =
