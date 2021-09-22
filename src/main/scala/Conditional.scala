@@ -3,7 +3,7 @@ import doobie.util.fragment.Fragment
 import doobie.implicits._
 import FragmentOperations._
 
-final class Conditional[A, B <: Fields[A]](model: Model[A, B])(
+final class Conditional[A, B](model: Model[A, B])(
     query: Query
 ) extends Completable(query):
 
@@ -35,5 +35,5 @@ final class Conditional[A, B <: Fields[A]](model: Model[A, B])(
     )
 
 object Conditional:
-  def apply[A, B <: Fields[A]](model: Model[A, B])(query: Query) =
-    new Conditional(model)(query)
+  def apply[A, B](model: Model[A, B])(query: Query) =
+    new Conditional[A, B](model)(query)

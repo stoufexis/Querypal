@@ -6,15 +6,18 @@ object Common:
 
   type FieldValue = (Field[?, ?], Fragment)
 
-  import cats.Monoid
-  import cats.implicits._
+  object ModelGen:
+    trait ModelGen[A]:
+      def apply[B](fields: B): Model[A, B] = Model(fields)
 
-  trait Fields[A]
+    given [A]: ModelGen[A] with {}
 
-  case class Model[A, B <: Fields[A]](fields: B)
+    def apply[A](using mg: ModelGen[A]) = mg
 
-  trait ModelMeta[B]:
-    val table: Table
-    def mapper(entity: B): List[FieldValue]
+  case class Model[A, B](fields: B)
+
+  trait ModelMeta[A](val tableName: Fragment):
+    val table: Table = Table(tableName)
+    def mapper(entity: A): List[FieldValue]
 
   case class Query(command: Command, table: Table, arguments: List[Argument])

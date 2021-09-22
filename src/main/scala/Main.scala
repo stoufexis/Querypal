@@ -42,22 +42,27 @@ case class Photo(name: String, photographer: String)
 //     )
 // }
 
+// given ModelMeta[Photo](fr"photo") with
+//   def mapper(entity: Photo) =
+//     List(
+//       (Fields.name -> fr"${entity.name}")
+//     )
+
 case class Person(name: String, age: Int)
 
-case object PersonFields extends Fields[Person] {
+case object PersonFields {
   val name = PrimaryKey[String, Person](fr"name")
   val age  = Column[Int, Person](fr"age")
 }
 
-given ModelMeta[Person] with
-  val table = Table(fr"person")
+given ModelMeta[Person](fr"person") with
   def mapper(entity: Person) =
     List(
       (PersonFields.name -> fr"${entity.name}"),
       (PersonFields.age  -> fr"${entity.age}")
     )
 
-val PersonModel = Model(PersonFields)
+val PersonModel = ModelGen[Person](PersonFields)
 
 object Main extends IOApp {
 
@@ -89,48 +94,47 @@ object Main extends IOApp {
     //   _ <- query.update.run
     //     .transact(xa)
     // yield ExitCode.Success
-    implicit val han = LogHandler.jdkLogHandler
-
-    // for
-    //   query <- IO(
-    //     QueryBuilder(
-    //       PersonModel
-    //     ).update set (_.age === 13) set (_.name === "unknown") where (_.age > 14) construct
-    //   )
-
-    //   _ <- query.update.run.transact(xa)
-    // yield ExitCode.Success
-
-    // for
-    //   query <- IO(
-    //     QueryBuilder(
-    //       PersonModel
-    //     ).select where (_.age > 10) bind (_ or (_.age < 5)) construct
-    //   )
-
-    //   _ <- query.update.run.transact(xa)
-    // yield ExitCode.Success
-
-    // def asd[A, B <: Product](entity: A, entityRef: B) = {}
-
+    // implicit val han = LogHandler.jdkLogHandler
     for
       query <- IO(
         QueryBuilder(
           PersonModel
-        ).select where (_.age > 13) construct
+        ).update set (_.age === 13) set (_.name === "unknown") where (_.age > 14) construct
       )
 
       _ <- query.update.run.transact(xa)
     yield ExitCode.Success
 
-    for
-      query <-
-        sql"""select * from person left outer join photo on person.name = photo.photographer_name where (person.name = 'Stef' or person.name = 'Stef2')"""
-          .query[(Person, Option[Photo])]
-          .to[List]
-          .transact(xa)
-      _ <- IO.println(query)
-    yield ExitCode.Success
+  // for
+  //   query <- IO(
+  //     QueryBuilder(
+  //       PersonModel
+  //     ).select where (_.age > 10) bind (_ or (_.age < 5)) construct
+  //   )
+
+  //   _ <- query.update.run.transact(xa)
+  // yield ExitCode.Success
+
+  // def asd[A, B <: Product](entity: A, entityRef: B) = {}
+
+  // for
+  //   query <- IO(
+  //     QueryBuilder(
+  //       PersonModel
+  //     ) insert (Photo("asd", "123")) construct
+  //   )
+
+  //   _ <- query.update.run.transact(xa)
+  // yield ExitCode.Success
+
+  // for
+  //   query <-
+  //     sql"""select * from person left outer join photo on person.name = photo.photographer_name where (person.name = 'Stef' or person.name = 'Stef2')"""
+  //       .query[(Person, Option[Photo])]
+  //       .to[List]
+  //       .transact(xa)
+  //   _ <- IO.println(query)
+  // yield ExitCode.Success
 
   val Sell = "sell"
   val Buy  = "buy"

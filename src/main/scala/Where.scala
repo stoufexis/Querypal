@@ -4,11 +4,11 @@ import doobie.implicits._
 import FragmentOperations._
 import FragmentOperations.Arguments
 
-trait Where[A, B <: Fields[A]] {
+trait Where[A, B] {
   def apply(f: B => Condition): Conditional[A, B] & Completable
 }
 
-final class WhereImpl[A, B <: Fields[A]](model: Model[A, B])(query: Query)
+final class CompletableWhere[A, B](model: Model[A, B])(query: Query)
     extends Where[A, B],
       Completable(query):
 
@@ -20,5 +20,5 @@ final class WhereImpl[A, B <: Fields[A]](model: Model[A, B])(query: Query)
     )
 
 object Where:
-  def apply[A, B <: Fields[A]](model: Model[A, B])(query: Query) =
-    new WhereImpl(model)(query)
+  def apply[A, B](model: Model[A, B])(query: Query) =
+    new CompletableWhere[A, B](model)(query)
