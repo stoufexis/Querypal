@@ -25,8 +25,8 @@ val xa = Transactor.fromDriverManager[IO](
 case class Photo(name: String, photographer: String)
 
 case object PhotoFields {
-  val name         = PrimaryKey[String, Photo](fr"name")
-  val photographer = Column[String, Photo](fr"photographer_name")
+  val name         = PrimaryKey[String](fr"name")
+  val photographer = Column[String](fr"photographer_name")
 }
 
 // case object PhotoMeta extends ModelMeta[Photo] {
@@ -48,21 +48,19 @@ given ModelMeta[Photo](sql"photo") with {
 
 case class Person(name: String, age: Int)
 
-case object PersonFields {
-  val name = PrimaryKey[String, Person](fr"name")
-  val age  = Column[Int, Person](fr"age")
+given personModel: Model[Person] with {
+  val name = PrimaryKey[String](fr"name")
+  val age  = Column[Int](fr"age")
 }
 
 given ModelMeta[Person](sql"person") with
   def mapper(entity: Person) =
     List(
-      (PersonFields.name -> fr"${entity.name}"),
-      (PersonFields.age  -> fr"${entity.age}")
+      (personModel.name -> fr"${entity.name}"),
+      (personModel.age  -> fr"${entity.age}")
     )
 
-given ManyToOne[Photo, Person]((PhotoFields.photographer -> PersonFields.name))
-
-val PersonModel = ModelGen[Person](PersonFields)
+given ManyToOne[Photo, Person](PhotoFields.photographer)
 
 object Main extends IOApp {
 
@@ -78,7 +76,7 @@ object Main extends IOApp {
     //   yield ExitCode.Success
     for
       age <- IO(
-        QueryBuilder(PersonModel).join[Photo] where (_.age === 13) construct
+        QueryBuilder(personModel).join[Photo] where (_.age === 13) construct
       )
       _ <- IO.println(age)
     yield ExitCode.Success

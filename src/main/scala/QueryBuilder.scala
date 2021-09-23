@@ -6,7 +6,7 @@ import FragmentOperations.Commands
 import FragmentOperations._
 import javax.management.relation.Relation
 
-final class QueryBuilder[A, B](model: Model[A, B])(using meta: ModelMeta[A]):
+final class QueryBuilder[A, B <: Model[A]](model: B)(using meta: ModelMeta[A]):
   val table = meta.table
 
   def select: WhereInterm[A, B] =
@@ -29,13 +29,13 @@ final class QueryBuilder[A, B](model: Model[A, B])(using meta: ModelMeta[A]):
   def update: SetInterm[A, B] =
     new Interm(Query(Commands.update, table, List[Argument]()), model)
 
-trait WhereInterm[A, B]:
+trait WhereInterm[A, B <: Model[A]]:
   def where: CompletableWhere[A, B]
 
-trait SetInterm[A, B]:
+trait SetInterm[A, B <: Model[A]]:
   def set(f: B => EqualsCondition): Set[A, B]
 
-final class Interm[A, B](query: Query, model: Model[A, B])(using
+final class Interm[A, B <: Model[A]](query: Query, model: B)(using
     meta: ModelMeta[A]
 ) extends WhereInterm[A, B],
       SetInterm[A, B]:
@@ -45,11 +45,11 @@ final class Interm[A, B](query: Query, model: Model[A, B])(using
   def where = Where(model)(query)
 
   def set(f: B => EqualsCondition) = Set(model)(
-    query.copy(arguments =
-      query.arguments ++ List(SqlOperations.set, f(model.fields))
-    )
+    query.copy(arguments = query.arguments ++ List(SqlOperations.set, f(model)))
   )
 
 object QueryBuilder:
-  def apply[A: ModelMeta, B](model: Model[A, B]): QueryBuilder[A, B] =
+  def apply[A: ModelMeta, B <: Model[A]](
+      model: B
+  ): QueryBuilder[A, B] =
     new QueryBuilder(model)

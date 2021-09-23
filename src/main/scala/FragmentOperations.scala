@@ -22,34 +22,34 @@ object FragmentOperations:
     def foldFragments =
       content.fold(Monoid[Fragment].empty)(_ |+| _)
 
-  sealed trait Field[+A, B]:
+  sealed trait Field[+A]:
     val name: Fragment
-  case class Column[A, B](name: Fragment)     extends Field[A, B]
-  case class PrimaryKey[A, B](name: Fragment) extends Field[A, B]
+  case class Column[A](name: Fragment)     extends Field[A]
+  case class PrimaryKey[A](name: Fragment) extends Field[A]
 
   trait Relationship[A, B]:
-    val fieldToField: (Field[?, A], Field[?, B])
+    val fieldToField: (Field[?], Field[?])
 
-  trait OneToMany[A, B](fields: (Field[?, A], Field[?, B]))
+  trait OneToMany[A, B](from: Field[?])(using toModel: Model[B])
       extends Relationship[A, B]:
-    val fieldToField = fields
+    val fieldToField = (from, toModel.pk)
 
-  trait ManyToOne[A, B](fields: (Field[?, A], Field[?, B]))
+  trait ManyToOne[A, B](from: Field[?])(using toModel: Model[B])
       extends Relationship[A, B]:
-    val fieldToField = fields
+    val fieldToField = (from, toModel.pk)
 
-  trait OneToOne[A, B](fields: (Field[?, A], Field[?, B]))
+  trait OneToOne[A, B](from: Field[?])(using toModel: Model[B])
       extends Relationship[A, B]:
-    val fieldToField = fields
+    val fieldToField = (from, toModel.pk)
 
   trait FieldOps[A]:
-    extension [B](x: Field[A, B])
+    extension [B](x: Field[A])
       def ===(y: A): EqualsCondition = y match
         case z: Int    => fr"${x.name} = ${(z: Int)}"
         case z: String => fr"${x.name} = ${(z: String)}"
 
   given FieldOps[Int] with
-    extension [B](x: Field[Int, B])
+    extension [B](x: Field[Int])
       def >(y: Int): Condition = fr"${x.name} > $y"
       def <(y: Int): Condition = fr"${x.name} < $y"
 

@@ -6,7 +6,7 @@ import cats.Monoid
 import cats.implicits._
 import doobie.util.fragment.Fragment
 
-final class Insert[A, B](model: Model[A, B])(query: Query)(using
+final class Insert[A, B <: Model[A]](model: B)(query: Query)(using
     meta: ModelMeta[A]
 ):
   def apply(entity: A): Completable =
@@ -24,5 +24,5 @@ final class Insert[A, B](model: Model[A, B])(query: Query)(using
     ) {}
 
 object Insert:
-  def apply[A: ModelMeta, B](model: Model[A, B])(query: Query) =
+  def apply[A: ModelMeta, B <: Model[A]](model: B)(query: Query) =
     new Insert(model)(query)

@@ -4,17 +4,12 @@ import FragmentOperations._
 
 object Common:
 
-  type FieldValue = (Field[?, ?], Fragment)
+  type FieldValue = (Field[?], Fragment)
 
-  object ModelGen:
-    trait ModelGen[A]:
-      def apply[B](fields: B): Model[A, B] = Model(fields)
+  trait Model[A]:
+    val pk = PrimaryKey[String](fr"name")
 
-    given [A]: ModelGen[A] with {}
-
-    def apply[A](using mg: ModelGen[A]) = mg
-
-  case class Model[A, B](fields: B)
+  // case class Model[A, B](fields: B)
 
   trait ModelMeta[A](val tableName: Fragment):
     val table: Table = Table(tableName)
