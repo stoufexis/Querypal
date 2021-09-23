@@ -3,6 +3,8 @@ import doobie.util.fragment.Fragment
 import Common._
 import cats.kernel.Monoid
 import cats.implicits._
+import FragmentOperations.PrimaryKey
+import javax.management.relation.Relation
 
 object FragmentOperations:
 
@@ -20,20 +22,31 @@ object FragmentOperations:
     def foldFragments =
       content.fold(Monoid[Fragment].empty)(_ |+| _)
 
-  sealed trait Field[A, B]:
+  sealed trait Field[+A, B]:
     val name: Fragment
-
   case class Column[A, B](name: Fragment)     extends Field[A, B]
   case class PrimaryKey[A, B](name: Fragment) extends Field[A, B]
-  case class ForeignKey[A, B](name: Fragment, references: Model[?, ?])
-      extends Field[A, B]
 
-  trait FieldOps[A] {
+  trait Relationship[A, B]:
+    val fieldToField: (Field[?, A], Field[?, B])
+
+  trait OneToMany[A, B](fields: (Field[?, A], Field[?, B]))
+      extends Relationship[A, B]:
+    val fieldToField = fields
+
+  trait ManyToOne[A, B](fields: (Field[?, A], Field[?, B]))
+      extends Relationship[A, B]:
+    val fieldToField = fields
+
+  trait OneToOne[A, B](fields: (Field[?, A], Field[?, B]))
+      extends Relationship[A, B]:
+    val fieldToField = fields
+
+  trait FieldOps[A]:
     extension [B](x: Field[A, B])
       def ===(y: A): EqualsCondition = y match
         case z: Int    => fr"${x.name} = ${(z: Int)}"
         case z: String => fr"${x.name} = ${(z: String)}"
-  }
 
   given FieldOps[Int] with
     extension [B](x: Field[Int, B])
@@ -53,8 +66,22 @@ object FragmentOperations:
           x ++ (GeneralOperators.comma ++ y)
         ) ++ GeneralOperators.rightParen
 
-  // def setFieldValue(fv: FieldValue): Argument =
-  //   fr"${fv.field.name} = ${fv.value}"
+    //select * from person inner join photo on person.name = photo.photographer_name where person.name = 'Stef'
+    def joinOp[A, B](using
+        meta: ModelMeta[A],
+        toJoinMeta: ModelMeta[B],
+        relation: Relationship[A, B] | Relationship[B, A]
+    ): Argument =
+      fr"inner join"
+        ++ toJoinMeta.tableName
+        ++ fr" on"
+        ++ meta.tableName
+        ++ sql"."
+        ++ relation.fieldToField._1.name
+        ++ fr"="
+        ++ toJoinMeta.tableName
+        ++ sql"."
+        ++ relation.fieldToField._2.name
 
   object GeneralOperators:
     def leftParen: Argument  = fr"("
@@ -78,7 +105,7 @@ object FragmentOperations:
   opaque type Table = Fragment
 
   object Table:
-    def apply(name: Fragment): Table = name
+    def apply(name: Fragment): Table = name ++ sql" "
 
   trait Completable(query: Query):
     def complete: Argument =

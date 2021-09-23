@@ -24,10 +24,10 @@ val xa = Transactor.fromDriverManager[IO](
 
 case class Photo(name: String, photographer: String)
 
-// case object PhotoFields extends Fields {
-//   val name         = Field[String](fr"name")
-//   val photographer = Field[String](fr"photographer_name")
-// }
+case object PhotoFields {
+  val name         = PrimaryKey[String, Photo](fr"name")
+  val photographer = Column[String, Photo](fr"photographer_name")
+}
 
 // case object PhotoMeta extends ModelMeta[Photo] {
 //   val table = fr"person"
@@ -42,11 +42,9 @@ case class Photo(name: String, photographer: String)
 //     )
 // }
 
-// given ModelMeta[Photo](fr"photo") with
-//   def mapper(entity: Photo) =
-//     List(
-//       (Fields.name -> fr"${entity.name}")
-//     )
+given ModelMeta[Photo](sql"photo") with {
+  def mapper(entity: Photo) = List()
+}
 
 case class Person(name: String, age: Int)
 
@@ -55,12 +53,14 @@ case object PersonFields {
   val age  = Column[Int, Person](fr"age")
 }
 
-given ModelMeta[Person](fr"person") with
+given ModelMeta[Person](sql"person") with
   def mapper(entity: Person) =
     List(
       (PersonFields.name -> fr"${entity.name}"),
       (PersonFields.age  -> fr"${entity.age}")
     )
+
+given ManyToOne[Photo, Person]((PhotoFields.photographer -> PersonFields.name))
 
 val PersonModel = ModelGen[Person](PersonFields)
 
@@ -76,67 +76,24 @@ object Main extends IOApp {
     //       .transact(xa)
     //     _ <- IO(people.foreach(println(_)))
     //   yield ExitCode.Success
-    // for
-    //   query <- IO(
-    //     QueryBuilder(PersonModel)
-    //       .insert(_(Person("Jack3", 14)))
-    //       .complete
-    //   )
-    //   _ <- IO.println(query)
-    //   _ <- query.update.run
-    //     .transact(xa)
-    // yield ExitCode.Success
-    // for
-    //   query <- IO(
-    //     QueryBuilder(PersonModel).delete.where(_.age gt 14).complete
-    //   )
-    //   _ <- IO.println(query)
-    //   _ <- query.update.run
-    //     .transact(xa)
-    // yield ExitCode.Success
-    // implicit val han = LogHandler.jdkLogHandler
     for
-      query <- IO(
-        QueryBuilder(
-          PersonModel
-        ).update set (_.age === 13) set (_.name === "unknown") where (_.age > 14) construct
+      age <- IO(
+        QueryBuilder(PersonModel).join[Photo] where (_.age === 13) construct
       )
-
-      _ <- query.update.run.transact(xa)
+      _ <- IO.println(age)
     yield ExitCode.Success
 
-  // for
-  //   query <- IO(
-  //     QueryBuilder(
-  //       PersonModel
-  //     ).select where (_.age > 10) bind (_ or (_.age < 5)) construct
-  //   )
-
   //   _ <- query.update.run.transact(xa)
   // yield ExitCode.Success
-
-  // def asd[A, B <: Product](entity: A, entityRef: B) = {}
-
+  //sql"""select * from person inner join photo on person.name = photo.photographer_name where person.name = 'Stef'"""
   // for
   //   query <- IO(
-  //     QueryBuilder(
-  //       PersonModel
-  //     ) insert (Photo("asd", "123")) construct
+  //     QueryBuilder(PersonModel).join[Photo] on (_.)
   //   )
-
-  //   _ <- query.update.run.transact(xa)
+  // .query[(Person, Option[Photo])]
+  // .to[List]
+  // .transact(xa)
+  // _ <- IO.println(query)
   // yield ExitCode.Success
-
-  // for
-  //   query <-
-  //     sql"""select * from person left outer join photo on person.name = photo.photographer_name where (person.name = 'Stef' or person.name = 'Stef2')"""
-  //       .query[(Person, Option[Photo])]
-  //       .to[List]
-  //       .transact(xa)
-  //   _ <- IO.println(query)
-  // yield ExitCode.Success
-
-  val Sell = "sell"
-  val Buy  = "buy"
 
 }
