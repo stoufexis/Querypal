@@ -12,10 +12,9 @@ lazy val root = project
     version      := "0.1.0",
     scalaVersion := scala3Version,
     libraryDependencies ++= Seq(
-      "org.typelevel" %% "cats-effect"         % CatsEffectVersion,
-      "co.fs2"        %% "fs2-core"            % Fs2Version,
-      "org.tpolecat"  %% "doobie-core"         % DoobieVersion,
-      "org.tpolecat"  %% "doobie-postgres"     % DoobieVersion,
-      "org.typelevel" %% "shapeless3-typeable" % "3.0.2"
+      "org.typelevel" %% "cats-effect"     % CatsEffectVersion,
+      "co.fs2"        %% "fs2-core"        % Fs2Version,
+      "org.tpolecat"  %% "doobie-core"     % DoobieVersion,
+      "org.tpolecat"  %% "doobie-postgres" % DoobieVersion
     )
   )
