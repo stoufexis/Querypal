@@ -28,32 +28,17 @@ object FragmentOperations:
 
   case class PrimaryKey[A, B](field: Field[A, B])
 
-  trait Relationship[A, B]:
-    val joinCondition: Argument
-
-  trait OneToMany[A, B](from: Field[?, A])(using
+  sealed trait Relationship[A, B](from: Field[?, A])(using
       fromMeta: ModelMeta[A],
       toModel: Model[B],
       toMeta: ModelMeta[B]
-  ) extends Relationship[A, B]:
+  ):
     val joinCondition: Argument =
       fromMeta.table.name ++ sql"." ++ from.name ++ fr"=" ++ toMeta.table.name ++ sql"." ++ toMeta.pk.field.name
 
-  trait ManyToOne[A, B](from: Field[?, A])(using
-      fromMeta: ModelMeta[A],
-      toModel: Model[B],
-      toMeta: ModelMeta[B]
-  ) extends Relationship[A, B]:
-    val joinCondition: Argument =
-      fromMeta.table.name ++ sql"." ++ from.name ++ fr"=" ++ toMeta.table.name ++ sql"." ++ toMeta.pk.field.name
-
-  trait OneToOne[A, B](from: Field[?, A])(using
-      fromMeta: ModelMeta[A],
-      toModel: Model[B],
-      toMeta: ModelMeta[B]
-  ) extends Relationship[A, B]:
-    val joinCondition: Argument =
-      fromMeta.table.name ++ sql"." ++ from.name ++ fr"=" ++ toMeta.table.name ++ sql"." ++ toMeta.pk.field.name
+  trait OneToMany[A, B](from: Field[?, A]) extends Relationship[A, B](from)
+  trait ManyToOne[A, B](from: Field[?, A]) extends Relationship[A, B](from)
+  trait OneToOne[A, B](from: Field[?, A])  extends Relationship[A, B](from)
 
   trait FieldOps[A]:
     extension [B](x: Field[A, B])(using meta: ModelMeta[B])
