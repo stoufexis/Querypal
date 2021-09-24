@@ -85,7 +85,7 @@ object FragmentOperations:
   object SqlOperations:
     val set: Argument = fr" set"
     def commaSeparatedParened(content: List[Fragment]): Argument =
-      fr"(" |+| content
+      sql"(" |+| content
         .drop(1)
         .fold(content.head)((x, y) =>
           x ++ (GeneralOperators.comma ++ y)

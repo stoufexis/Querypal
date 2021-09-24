@@ -6,7 +6,9 @@ import FragmentOperations.Commands
 import FragmentOperations._
 import javax.management.relation.Relation
 
-final class QueryBuilder[A, B <: Model[A]](model: B)(using meta: ModelMeta[A]):
+final class QueryBuilder[A <: Product: Mapper, B <: Model[A]](model: B)(using
+    meta: ModelMeta[A]
+):
   val table = meta.table
 
   def select: Where[A, B] =
@@ -35,5 +37,7 @@ final class Select[A, B <: Model[A]](model: B)(query: Query) {
 }
 
 object QueryBuilder:
-  def apply[A: ModelMeta, B <: Model[A]](model: B): QueryBuilder[A, B] =
+  def apply[A <: Product: ModelMeta: Mapper, B <: Model[A]](
+      model: B
+  ): QueryBuilder[A, B] =
     new QueryBuilder(model)

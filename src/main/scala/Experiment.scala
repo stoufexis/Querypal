@@ -29,8 +29,6 @@
 //     override val toString = s"$fr -> ${col.name}"
 //   }
 
-//   // type ZipFieldFragment = Tuple2[Field[_, _], Fragment[_]]
-
 //   val mapper = [T] => (a: T) => Fragment[T](a)
 
 //   val toSetArg = [T] =>

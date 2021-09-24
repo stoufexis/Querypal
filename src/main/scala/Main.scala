@@ -30,22 +30,10 @@ case object PhotoFields {
   val photographer = Column[String, Photo](fr"photographer_name")
 }
 
-// case object PhotoMeta extends ModelMeta[Photo] {
-//   val table = fr"person"
-
-//   val pk          = PrimaryKey(PhotoFields.name)
-//   override val fk = Some(ForeignKey(PhotoFields.photographer, PersonModel))
-
-//   def mapper(entity: Photo): List[FieldValue] =
-//     List(
-//       FieldValue(PhotoFields.name, fr"${entity.name}"),
-//       FieldValue(PhotoFields.photographer, fr"${entity.photographer}")
-//     )
-// }
-
 given ModelMeta[Photo](sql"photo") with {
-  val pk                    = PrimaryKey(PhotoFields.name)
-  def mapper(entity: Photo) = List()
+  val pk     = PrimaryKey(PhotoFields.name)
+  val fields = List(sql"name")
+
 }
 
 case class Person(name: String, age: Int)
@@ -56,52 +44,46 @@ given personModel: Model[Person] with {
 }
 
 given ModelMeta[Person](sql"person") with
-  val pk = PrimaryKey(personModel.name)
-  def mapper(entity: Person) =
-    List(
-      (personModel.name -> fr"${entity.name}"),
-      (personModel.age  -> fr"${entity.age}")
-    )
+  val pk     = PrimaryKey(personModel.name)
+  val fields = (sql"name", sql"photographer_name").toList
 
-given ManyToOne[Photo, Person](PhotoFields.photographer)
-
+given Mapper[Person] = deriveMapper[Person]
 object Main extends IOApp {
 
   def run(args: List[String]): IO[ExitCode] =
     implicit val han = LogHandler.jdkLogHandler
 
-    // for
-    //   age <- IO(
-    //     QueryBuilder(
-    //       personModel
-    //     ) insert Person("Person2", 34) construct
-    //   )
-    //   aa <- age.update.run.transact(xa)
-    //   _  <- IO.println(aa)
-    // yield ExitCode.Success
-
-    // val searchWord = "tef2"
-
-    // for
-    //   age <- IO(
-    //     QueryBuilder(
-    //       personModel
-    //     ).join[Photo]
-    //       select (_.name === "unknown") or (_.name like s"%${searchWord}") construct
-    //   )
-    //   aa <- age.query[(Person, Photo)].to[List].transact(xa)
-    //   _  <- IO.println(aa)
-    // yield ExitCode.Success
-
     for
       age <- IO(
         QueryBuilder(
           personModel
-        ) select (_.age > 14) or (_.age === 13) bind (_ and (_.name === "jak")) construct
+        ) insert Person("Person23", 34) construct
       )
-      aa <- age.query[Person].to[List].transact(xa)
-      _  <- IO.println(aa)
+      age <- age.update.run.transact(xa)
     yield ExitCode.Success
+
+  // val searchWord = "tef2"
+
+  // for
+  //   age <- IO(
+  //     QueryBuilder(
+  //       personModel
+  //     ).join[Photo]
+  //       select (_.name === "unknown") or (_.name like s"%${searchWord}") construct
+  //   )
+  //   aa <- age.query[(Person, Photo)].to[List].transact(xa)
+  //   _  <- IO.println(aa)
+  // yield ExitCode.Success
+
+  // for
+  //   age <- IO(
+  //     QueryBuilder(
+  //       personModel
+  //     ) select (_.age > 14) or (_.age === 13) bind (_ and (_.name === "jak")) construct
+  //   )
+  //   aa <- age.query[Person].to[List].transact(xa)
+  //   _  <- IO.println(aa)
+  // yield ExitCode.Success
 
   // for
   //   age <- IO(
