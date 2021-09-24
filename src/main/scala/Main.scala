@@ -80,28 +80,28 @@ object Main extends IOApp {
     //   _  <- IO.println(aa)
     // yield ExitCode.Success
 
-    val searchWord = "tef2"
+    // val searchWord = "tef2"
+
+    // for
+    //   age <- IO(
+    //     QueryBuilder(
+    //       personModel
+    //     ).join[Photo]
+    //       select (_.name === "unknown") or (_.name like s"%${searchWord}") construct
+    //   )
+    //   aa <- age.query[(Person, Photo)].to[List].transact(xa)
+    //   _  <- IO.println(aa)
+    // yield ExitCode.Success
 
     for
       age <- IO(
         QueryBuilder(
           personModel
-        ).join[Photo]
-          select (_.name === "unknown") or (_.name like s"%${searchWord}") construct
+        ) select (_.age > 14) or (_.age === 13) bind (_ and (_.name === "jak")) construct
       )
-      aa <- age.query[(Person, Photo)].to[List].transact(xa)
+      aa <- age.query[Person].to[List].transact(xa)
       _  <- IO.println(aa)
     yield ExitCode.Success
-
-  // for
-  //   age <- IO(
-  //     QueryBuilder(
-  //       personModel
-  //     ) select (_.age > 14) or (_.age === 13) bind (_ and (_.name === "jak")) construct
-  //   )
-  //   aa <- age.query[Person].to[List].transact(xa)
-  //   _  <- IO.println(aa)
-  // yield ExitCode.Success
 
   // for
   //   age <- IO(
