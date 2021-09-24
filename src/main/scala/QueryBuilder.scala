@@ -14,10 +14,9 @@ final class QueryBuilder[A, B <: Model[A]](model: B)(using meta: ModelMeta[A]):
 
   def join[C: ModelMeta](using
       Relationship[A, C] | Relationship[C, A]
-  ): WhereInterm[A, B] & Completable =
-    new Interm(
-      Query(Commands.select, table, List[Argument](SqlOperations.joinOp[A, C])),
-      model
+  ): Select[A, B] =
+    new Select(model)(
+      Query(Commands.select, table, List[Argument](SqlOperations.joinOp[A, C]))
     )
 
   def delete: Where[A, B] =
@@ -26,28 +25,14 @@ final class QueryBuilder[A, B <: Model[A]](model: B)(using meta: ModelMeta[A]):
   def insert =
     Insert(model)(Query(Commands.insert, table, List[Argument]()))
 
-  def update: SetInterm[A, B] =
-    new Interm(Query(Commands.update, table, List[Argument]()), model)
+  def update(f: B => SetArgument): Set[A, B] =
+    new Set(model)(
+      Query(Commands.update, table, List(SqlOperations.set, f(model)))
+    )
 
-trait WhereInterm[A, B <: Model[A]]:
-  def where: CompletableWhere[A, B]
-
-trait SetInterm[A, B <: Model[A]]:
-  def set(f: B => EqualsCondition): Set[A, B]
-
-final class Interm[A, B <: Model[A]](query: Query, model: B)(using
-    meta: ModelMeta[A]
-) extends WhereInterm[A, B],
-      SetInterm[A, B],
-      Completable(query):
-
-  val table = meta.table
-
-  def where = Where(model)(query)
-
-  def set(f: B => EqualsCondition) = Set(model)(
-    query.copy(arguments = query.arguments ++ List(SqlOperations.set, f(model)))
-  )
+final class Select[A, B <: Model[A]](model: B)(query: Query) {
+  def select: Where[A, B] = Where(model)(query.copy())
+}
 
 object QueryBuilder:
   def apply[A: ModelMeta, B <: Model[A]](model: B): QueryBuilder[A, B] =
