@@ -11,8 +11,8 @@ object Common:
 
   // case class Model[A, B](fields: B)
 
-  trait ModelMeta[A](val tableName: Fragment):
-    val table: Table = Table(tableName)
+  trait ModelMeta[A](tableName: Fragment):
+    val table = Table(tableName)
     def mapper(entity: A): List[FieldValue]
 
   case class Query(command: Command, table: Table, arguments: List[Argument])

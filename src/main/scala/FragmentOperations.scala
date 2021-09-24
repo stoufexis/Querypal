@@ -5,9 +5,9 @@ import cats.kernel.Monoid
 import cats.implicits._
 import FragmentOperations.PrimaryKey
 import javax.management.relation.Relation
+import doobie.syntax.SqlInterpolator.SingleFragment.fromFragment
 
 object FragmentOperations:
-
   opaque type Command = Fragment
 
   opaque type Argument = Fragment
@@ -28,19 +28,31 @@ object FragmentOperations:
   case class PrimaryKey[A](name: Fragment) extends Field[A]
 
   trait Relationship[A, B]:
-    val fieldToField: (Field[?], Field[?])
+    val joinCondition: Argument
 
-  trait OneToMany[A, B](from: Field[?])(using toModel: Model[B])
-      extends Relationship[A, B]:
-    val fieldToField = (from, toModel.pk)
+  trait OneToMany[A, B](from: Field[?])(using
+      fromMeta: ModelMeta[A],
+      toModel: Model[B],
+      toMeta: ModelMeta[B]
+  ) extends Relationship[A, B]:
+    val joinCondition: Argument =
+      fromMeta.table.name ++ sql"." ++ from.name ++ fr"=" ++ toMeta.table.name ++ sql"." ++ toModel.pk.name
 
-  trait ManyToOne[A, B](from: Field[?])(using toModel: Model[B])
-      extends Relationship[A, B]:
-    val fieldToField = (from, toModel.pk)
+  trait ManyToOne[A, B](from: Field[?])(using
+      fromMeta: ModelMeta[A],
+      toModel: Model[B],
+      toMeta: ModelMeta[B]
+  ) extends Relationship[A, B]:
+    val joinCondition: Argument =
+      fromMeta.table.name ++ sql"." ++ from.name ++ fr"=" ++ toMeta.table.name ++ sql"." ++ toModel.pk.name
 
-  trait OneToOne[A, B](from: Field[?])(using toModel: Model[B])
-      extends Relationship[A, B]:
-    val fieldToField = (from, toModel.pk)
+  trait OneToOne[A, B](from: Field[?])(using
+      fromMeta: ModelMeta[A],
+      toModel: Model[B],
+      toMeta: ModelMeta[B]
+  ) extends Relationship[A, B]:
+    val joinCondition: Argument =
+      fromMeta.table.name ++ sql"." ++ from.name ++ fr"=" ++ toMeta.table.name ++ sql"." ++ toModel.pk.name
 
   trait FieldOps[A]:
     extension [B](x: Field[A])
@@ -68,20 +80,10 @@ object FragmentOperations:
 
     //select * from person inner join photo on person.name = photo.photographer_name where person.name = 'Stef'
     def joinOp[A, B](using
-        meta: ModelMeta[A],
-        toJoinMeta: ModelMeta[B],
-        relation: Relationship[A, B] | Relationship[B, A]
+        relation: Relationship[A, B] | Relationship[B, A],
+        toMeta: ModelMeta[B]
     ): Argument =
-      fr"inner join"
-        ++ toJoinMeta.tableName
-        ++ fr" on"
-        ++ meta.tableName
-        ++ sql"."
-        ++ relation.fieldToField._1.name
-        ++ fr"="
-        ++ toJoinMeta.tableName
-        ++ sql"."
-        ++ relation.fieldToField._2.name
+      fr" inner join" ++ toMeta.table.name ++ fr" on" ++ relation.joinCondition
 
   object GeneralOperators:
     def leftParen: Argument  = fr"("
@@ -102,14 +104,11 @@ object FragmentOperations:
     val where: Argument  = fr"where"
     val values: Argument = fr"values"
 
-  opaque type Table = Fragment
-
-  object Table:
-    def apply(name: Fragment): Table = name ++ sql" "
+  case class Table(name: Fragment)
 
   trait Completable(query: Query):
     def complete: Argument =
-      (List(query.command, query.table) ++ query.arguments).foldFragments
+      (List(query.command, query.table.name) ++ query.arguments).foldFragments
 
     def construct: Fragment =
-      (List(query.command, query.table) ++ query.arguments).foldFragments
+      (List(query.command, query.table.name) ++ query.arguments).foldFragments

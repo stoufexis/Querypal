@@ -14,7 +14,7 @@ final class QueryBuilder[A, B <: Model[A]](model: B)(using meta: ModelMeta[A]):
 
   def join[C: ModelMeta](using
       Relationship[A, C] | Relationship[C, A]
-  ): WhereInterm[A, B] =
+  ): WhereInterm[A, B] & Completable =
     new Interm(
       Query(Commands.select, table, List[Argument](SqlOperations.joinOp[A, C])),
       model
@@ -38,7 +38,8 @@ trait SetInterm[A, B <: Model[A]]:
 final class Interm[A, B <: Model[A]](query: Query, model: B)(using
     meta: ModelMeta[A]
 ) extends WhereInterm[A, B],
-      SetInterm[A, B]:
+      SetInterm[A, B],
+      Completable(query):
 
   val table = meta.table
 

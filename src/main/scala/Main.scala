@@ -14,6 +14,7 @@ import doobie.util.log.LogHandler
 import scala.deriving.Mirror
 import scala.deriving.Mirror.ProductOf
 import scala.util.Random
+import doobie.util.update
 
 val xa = Transactor.fromDriverManager[IO](
   "org.postgresql.Driver",                     // driver classname
@@ -60,7 +61,7 @@ given ModelMeta[Person](sql"person") with
       (personModel.age  -> fr"${entity.age}")
     )
 
-given ManyToOne[Photo, Person](PhotoFields.photographer)
+given ManyToOne[Photo, Person](PhotoFields.photographer) with {}
 
 object Main extends IOApp {
 
@@ -74,11 +75,14 @@ object Main extends IOApp {
     //       .transact(xa)
     //     _ <- IO(people.foreach(println(_)))
     //   yield ExitCode.Success
+    implicit val han = LogHandler.jdkLogHandler
     for
       age <- IO(
-        QueryBuilder(personModel).join[Photo] where (_.age === 13) construct
+        QueryBuilder(personModel)
+          .join[Photo] construct
       )
-      _ <- IO.println(age)
+      aa <- age.query[(Person, Photo)].to[List].transact(xa)
+      _  <- IO.println(aa)
     yield ExitCode.Success
 
   //   _ <- query.update.run.transact(xa)
