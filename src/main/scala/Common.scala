@@ -4,15 +4,15 @@ import FragmentOperations._
 
 object Common:
 
-  type FieldValue = (Field[?], Fragment)
+  type FieldValue[A] = (Field[?, A], Fragment)
 
-  trait Model[A]:
-    val pk = PrimaryKey[String](fr"name")
+  trait Model[A]
 
   // case class Model[A, B](fields: B)
 
   trait ModelMeta[A](tableName: Fragment):
+    val pk: PrimaryKey[Any, A]
     val table = Table(tableName)
-    def mapper(entity: A): List[FieldValue]
+    def mapper(entity: A): List[FieldValue[A]]
 
   case class Query(command: Command, table: Table, arguments: List[Argument])

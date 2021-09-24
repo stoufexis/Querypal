@@ -9,8 +9,8 @@ import javax.management.relation.Relation
 final class QueryBuilder[A, B <: Model[A]](model: B)(using meta: ModelMeta[A]):
   val table = meta.table
 
-  def select: WhereInterm[A, B] =
-    new Interm(Query(Commands.select, table, List[Argument]()), model)
+  def select: Where[A, B] =
+    Where(model)(Query(Commands.select, table, List[Argument]()))
 
   def join[C: ModelMeta](using
       Relationship[A, C] | Relationship[C, A]
@@ -20,8 +20,8 @@ final class QueryBuilder[A, B <: Model[A]](model: B)(using meta: ModelMeta[A]):
       model
     )
 
-  def delete: WhereInterm[A, B] =
-    new Interm(Query(Commands.delete, table, List[Argument]()), model)
+  def delete: Where[A, B] =
+    Where(model)(Query(Commands.delete, table, List[Argument]()))
 
   def insert =
     Insert(model)(Query(Commands.insert, table, List[Argument]()))
@@ -50,7 +50,5 @@ final class Interm[A, B <: Model[A]](query: Query, model: B)(using
   )
 
 object QueryBuilder:
-  def apply[A: ModelMeta, B <: Model[A]](
-      model: B
-  ): QueryBuilder[A, B] =
+  def apply[A: ModelMeta, B <: Model[A]](model: B): QueryBuilder[A, B] =
     new QueryBuilder(model)

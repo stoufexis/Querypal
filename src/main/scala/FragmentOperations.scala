@@ -22,55 +22,58 @@ object FragmentOperations:
     def foldFragments =
       content.fold(Monoid[Fragment].empty)(_ |+| _)
 
-  sealed trait Field[+A]:
+  sealed trait Field[+A, B]:
     val name: Fragment
-  case class Column[A](name: Fragment)     extends Field[A]
-  case class PrimaryKey[A](name: Fragment) extends Field[A]
+  case class Column[A, B](name: Fragment) extends Field[A, B]
+
+  case class PrimaryKey[A, B](field: Field[A, B])
 
   trait Relationship[A, B]:
     val joinCondition: Argument
 
-  trait OneToMany[A, B](from: Field[?])(using
+  trait OneToMany[A, B](from: Field[?, A])(using
       fromMeta: ModelMeta[A],
       toModel: Model[B],
       toMeta: ModelMeta[B]
   ) extends Relationship[A, B]:
     val joinCondition: Argument =
-      fromMeta.table.name ++ sql"." ++ from.name ++ fr"=" ++ toMeta.table.name ++ sql"." ++ toModel.pk.name
+      fromMeta.table.name ++ sql"." ++ from.name ++ fr"=" ++ toMeta.table.name ++ sql"." ++ toMeta.pk.field.name
 
-  trait ManyToOne[A, B](from: Field[?])(using
+  trait ManyToOne[A, B](from: Field[?, A])(using
       fromMeta: ModelMeta[A],
       toModel: Model[B],
       toMeta: ModelMeta[B]
   ) extends Relationship[A, B]:
     val joinCondition: Argument =
-      fromMeta.table.name ++ sql"." ++ from.name ++ fr"=" ++ toMeta.table.name ++ sql"." ++ toModel.pk.name
+      fromMeta.table.name ++ sql"." ++ from.name ++ fr"=" ++ toMeta.table.name ++ sql"." ++ toMeta.pk.field.name
 
-  trait OneToOne[A, B](from: Field[?])(using
+  trait OneToOne[A, B](from: Field[?, A])(using
       fromMeta: ModelMeta[A],
       toModel: Model[B],
       toMeta: ModelMeta[B]
   ) extends Relationship[A, B]:
     val joinCondition: Argument =
-      fromMeta.table.name ++ sql"." ++ from.name ++ fr"=" ++ toMeta.table.name ++ sql"." ++ toModel.pk.name
+      fromMeta.table.name ++ sql"." ++ from.name ++ fr"=" ++ toMeta.table.name ++ sql"." ++ toMeta.pk.field.name
 
   trait FieldOps[A]:
-    extension [B](x: Field[A])
+    extension [B](x: Field[A, B])(using meta: ModelMeta[B])
       def ===(y: A): EqualsCondition = y match
-        case z: Int    => fr"${x.name} = ${(z: Int)}"
-        case z: String => fr"${x.name} = ${(z: String)}"
+        case z: Int =>
+          sql"${meta.table.name}" ++ sql"." ++ fr"${x.name} = ${(z: Int)}"
+        case z: String =>
+          sql"${meta.table.name}" ++ sql"." ++ fr"${x.name} = ${(z: String)}"
 
   given FieldOps[Int] with
-    extension [B](x: Field[Int])
-      def >(y: Int): Condition = fr"${x.name} > $y"
-      def <(y: Int): Condition = fr"${x.name} < $y"
+    extension [B](x: Field[Int, B])(using meta: ModelMeta[B])
+      def >(y: Int): Condition =
+        sql"${meta.table.name}" ++ sql"." ++ fr"${x.name} > $y"
+      def <(y: Int): Condition =
+        sql"${meta.table.name}" ++ sql"." ++ fr"${x.name} < $y"
 
   given FieldOps[String] with {}
 
   object SqlOperations:
-
     val set: Argument = fr"set"
-
     def commaSeparatedParened(content: List[Fragment]): Argument =
       fr"(" |+| content
         .drop(1)
@@ -101,8 +104,8 @@ object FragmentOperations:
     val select: Command = fr"select * from"
 
   object Arguments:
-    val where: Argument  = fr"where"
-    val values: Argument = fr"values"
+    val where: Argument  = fr" where"
+    val values: Argument = fr" values"
 
   case class Table(name: Fragment)
 

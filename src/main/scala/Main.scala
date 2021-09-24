@@ -26,8 +26,8 @@ val xa = Transactor.fromDriverManager[IO](
 case class Photo(name: String, photographer: String)
 
 case object PhotoFields {
-  val name         = PrimaryKey[String](fr"name")
-  val photographer = Column[String](fr"photographer_name")
+  val name         = Column[String, Photo](fr"name")
+  val photographer = Column[String, Photo](fr"photographer_name")
 }
 
 // case object PhotoMeta extends ModelMeta[Photo] {
@@ -44,24 +44,26 @@ case object PhotoFields {
 // }
 
 given ModelMeta[Photo](sql"photo") with {
+  val pk                    = PrimaryKey(PhotoFields.name)
   def mapper(entity: Photo) = List()
 }
 
 case class Person(name: String, age: Int)
 
 given personModel: Model[Person] with {
-  val name = PrimaryKey[String](fr"name")
-  val age  = Column[Int](fr"age")
+  val name = Column[String, Person](fr"name")
+  val age  = Column[Int, Person](fr"age")
 }
 
 given ModelMeta[Person](sql"person") with
+  val pk = PrimaryKey(personModel.name)
   def mapper(entity: Person) =
     List(
       (personModel.name -> fr"${entity.name}"),
       (personModel.age  -> fr"${entity.age}")
     )
 
-given ManyToOne[Photo, Person](PhotoFields.photographer) with {}
+given ManyToOne[Photo, Person](PhotoFields.photographer)
 
 object Main extends IOApp {
 
@@ -78,10 +80,11 @@ object Main extends IOApp {
     implicit val han = LogHandler.jdkLogHandler
     for
       age <- IO(
-        QueryBuilder(personModel)
-          .join[Photo] construct
+        QueryBuilder(
+          personModel
+        ) select (_.age > 14) or (_.name === "Stef") construct
       )
-      aa <- age.query[(Person, Photo)].to[List].transact(xa)
+      aa <- age.query[Person].to[List].transact(xa)
       _  <- IO.println(aa)
     yield ExitCode.Success
 
