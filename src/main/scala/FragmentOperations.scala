@@ -6,6 +6,7 @@ import cats.implicits._
 import FragmentOperations.PrimaryKey
 import javax.management.relation.Relation
 import doobie.syntax.SqlInterpolator.SingleFragment.fromFragment
+import scala.annotation.targetName
 
 object FragmentOperations:
   opaque type Command = Fragment
@@ -28,17 +29,32 @@ object FragmentOperations:
 
   case class PrimaryKey[A, B](field: Field[A, B])
 
-  sealed trait Relationship[A, B](from: Field[?, A])(using
+  trait Relationship[A, B]:
+    val joinCondition: Argument
+
+  trait OneToMany[A, B](from: Field[?, A])(using
       fromMeta: ModelMeta[A],
       toModel: Model[B],
       toMeta: ModelMeta[B]
-  ):
+  ) extends Relationship[A, B]:
     val joinCondition: Argument =
       fromMeta.table.name ++ sql"." ++ from.name ++ fr"=" ++ toMeta.table.name ++ sql"." ++ toMeta.pk.field.name
 
-  trait OneToMany[A, B](from: Field[?, A]) extends Relationship[A, B](from)
-  trait ManyToOne[A, B](from: Field[?, A]) extends Relationship[A, B](from)
-  trait OneToOne[A, B](from: Field[?, A])  extends Relationship[A, B](from)
+  trait ManyToOne[A, B](from: Field[?, A])(using
+      fromMeta: ModelMeta[A],
+      toModel: Model[B],
+      toMeta: ModelMeta[B]
+  ) extends Relationship[A, B]:
+    val joinCondition: Argument =
+      fromMeta.table.name ++ sql"." ++ from.name ++ fr"=" ++ toMeta.table.name ++ sql"." ++ toMeta.pk.field.name
+
+  trait OneToOne[A, B](from: Field[?, A])(using
+      fromMeta: ModelMeta[A],
+      toModel: Model[B],
+      toMeta: ModelMeta[B]
+  ) extends Relationship[A, B]:
+    val joinCondition: Argument =
+      fromMeta.table.name ++ sql"." ++ from.name ++ fr"=" ++ toMeta.table.name ++ sql"." ++ toMeta.pk.field.name
 
   trait FieldOps[A]:
     extension [B](x: Field[A, B])(using meta: ModelMeta[B])
@@ -48,17 +64,26 @@ object FragmentOperations:
         case z: String =>
           sql"${meta.table.name}" ++ sql"." ++ fr"${x.name} = ${(z: String)}"
 
+      def set(y: A): SetArgument = y match
+        case z: Int    => sql"${x.name} = ${z: Int}"
+        case z: String => sql"${x.name} = ${z: String}"
+
   given FieldOps[Int] with
     extension [B](x: Field[Int, B])(using meta: ModelMeta[B])
       def >(y: Int): Condition =
         sql"${meta.table.name}" ++ sql"." ++ fr"${x.name} > $y"
+
       def <(y: Int): Condition =
         sql"${meta.table.name}" ++ sql"." ++ fr"${x.name} < $y"
 
-  given FieldOps[String] with {}
+  given FieldOps[String] with {
+    extension [B](x: Field[String, B])(using meta: ModelMeta[B])
+      def like(y: String): Condition =
+        meta.table.name ++ fr".${x.name} like ${y}"
+  }
 
   object SqlOperations:
-    val set: Argument = fr"set"
+    val set: Argument = fr" set"
     def commaSeparatedParened(content: List[Fragment]): Argument =
       fr"(" |+| content
         .drop(1)
@@ -96,7 +121,7 @@ object FragmentOperations:
 
   trait Completable(query: Query):
     def complete: Argument =
-      (List(query.command, query.table.name) ++ query.arguments).foldFragments
+      query.arguments.foldFragments
 
     def construct: Fragment =
       (List(query.command, query.table.name) ++ query.arguments).foldFragments

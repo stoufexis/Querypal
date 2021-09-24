@@ -68,37 +68,59 @@ given ManyToOne[Photo, Person](PhotoFields.photographer)
 object Main extends IOApp {
 
   def run(args: List[String]): IO[ExitCode] =
-    //   for
-    //     people <- QueryBuilder(PersonModel).select
-    //       .where(_.name eqls "Gordon")
-    //       .complete
-    //       .query[Person]
-    //       .to[List]
-    //       .transact(xa)
-    //     _ <- IO(people.foreach(println(_)))
-    //   yield ExitCode.Success
     implicit val han = LogHandler.jdkLogHandler
+
+    // for
+    //   age <- IO(
+    //     QueryBuilder(
+    //       personModel
+    //     ) insert Person("Person2", 34) construct
+    //   )
+    //   aa <- age.update.run.transact(xa)
+    //   _  <- IO.println(aa)
+    // yield ExitCode.Success
+
+    val searchWord = "tef2"
+
     for
       age <- IO(
         QueryBuilder(
           personModel
-        ) select (_.age > 14) or (_.name === "Stef") construct
+        ).join[Photo]
+          select (_.name === "unknown") or (_.name like s"%${searchWord}") construct
       )
-      aa <- age.query[Person].to[List].transact(xa)
+      aa <- age.query[(Person, Photo)].to[List].transact(xa)
       _  <- IO.println(aa)
     yield ExitCode.Success
 
-  //   _ <- query.update.run.transact(xa)
-  // yield ExitCode.Success
-  //sql"""select * from person inner join photo on person.name = photo.photographer_name where person.name = 'Stef'"""
   // for
-  //   query <- IO(
-  //     QueryBuilder(PersonModel).join[Photo] on (_.)
+  //   age <- IO(
+  //     QueryBuilder(
+  //       personModel
+  //     ) select (_.age > 14) or (_.age === 13) bind (_ and (_.name === "jak")) construct
   //   )
-  // .query[(Person, Option[Photo])]
-  // .to[List]
-  // .transact(xa)
-  // _ <- IO.println(query)
+  //   aa <- age.query[Person].to[List].transact(xa)
+  //   _  <- IO.println(aa)
+  // yield ExitCode.Success
+
+  // for
+  //   age <- IO(
+  //     QueryBuilder(
+  //       personModel
+  //     ) update (_.age set 13) update (_.name set "Re-aged123") where (_.name === "asdd") construct
+  //   )
+  //   aa <- age.update.run.transact(xa)
+  //   _  <- IO.println(aa)
+  // yield ExitCode.Success
+
+  // for
+  //   age <- IO(
+  //     QueryBuilder(
+  //       personModel
+  //     ) delete (_.age > 29) or (_.name === "unknown") construct
+  //   )
+  //   aa <- age.update.run.transact(xa)
+  //   _  <- IO.println(aa)
   // yield ExitCode.Success
 
 }

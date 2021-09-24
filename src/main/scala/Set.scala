@@ -6,7 +6,7 @@ import FragmentOperations._
 import FragmentOperations.SqlOperations._
 
 final class Set[A, B <: Model[A]](model: B)(query: Query):
-  def set(f: B => EqualsCondition) = new Set(model)(
+  def update(f: B => SetArgument) = new Set(model)(
     query.copy(arguments =
       query.arguments ++ List(GeneralOperators.comma, f(model))
     )
