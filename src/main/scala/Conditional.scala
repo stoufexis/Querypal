@@ -29,7 +29,11 @@ final class Conditional[A, B <: Model[A]](model: B)(
         query.arguments
           .dropRight(1)
           :+ GeneralOperators.leftParen
-          :+ f(Conditional(model)(query.copy(arguments = List()))).complete
+          :+ f(
+            Conditional(model)(
+              query.copy(arguments = List(query.arguments.last))
+            )
+          ).complete
           :+ GeneralOperators.rightParen
       )
     )
