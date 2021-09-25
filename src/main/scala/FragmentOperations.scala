@@ -34,7 +34,6 @@ object FragmentOperations:
 
   trait OneToMany[A, B](from: Field[?, A])(using
       fromMeta: ModelMeta[A],
-      toModel: Model[B],
       toMeta: ModelMeta[B]
   ) extends Relationship[A, B]:
     val joinCondition: Argument =
@@ -42,7 +41,6 @@ object FragmentOperations:
 
   trait ManyToOne[A, B](from: Field[?, A])(using
       fromMeta: ModelMeta[A],
-      toModel: Model[B],
       toMeta: ModelMeta[B]
   ) extends Relationship[A, B]:
     val joinCondition: Argument =
@@ -50,7 +48,6 @@ object FragmentOperations:
 
   trait OneToOne[A, B](from: Field[?, A])(using
       fromMeta: ModelMeta[A],
-      toModel: Model[B],
       toMeta: ModelMeta[B]
   ) extends Relationship[A, B]:
     val joinCondition: Argument =

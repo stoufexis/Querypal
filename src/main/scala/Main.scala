@@ -43,32 +43,32 @@ case object PersonModel extends Model[Person] {
 given ModelMeta[Person] =
   deriveModelMeta[Person](fr"person")(PersonModel.name)(PersonModel.age)
 
+given ManyToOne[Photo, Person](PhotoFields.photographer)
+
 object Main extends IOApp {
 
   def run(args: List[String]): IO[ExitCode] =
     implicit val han = LogHandler.jdkLogHandler
 
+    // for
+    //   age <- IO(
+    //     QueryBuilder(
+    //       PersonModel
+    //     ) insert Person("Person345", 34) construct
+    //   )
+    // // age <- age.update.run.transact(xa)
+    // yield ExitCode.Success
+
+    val searchWord = "tef2"
+
     for
       age <- IO(
-        QueryBuilder(
-          PersonModel
-        ) insert Person("Person345", 34) construct
+        QueryBuilder(PersonModel).join[Photo]
+          select (_.name === "unknown") or (_.name like s"%${searchWord}") construct
       )
-    // age <- age.update.run.transact(xa)
+      aa <- age.query[(Person, Photo)].to[List].transact(xa)
+      _  <- IO.println(aa)
     yield ExitCode.Success
-
-  // val searchWord = "tef2"
-
-  // for
-  //   age <- IO(
-  //     QueryBuilder(
-  //       personModel
-  //     ).join[Photo]
-  //       select (_.name === "unknown") or (_.name like s"%${searchWord}") construct
-  //   )
-  //   aa <- age.query[(Person, Photo)].to[List].transact(xa)
-  //   _  <- IO.println(aa)
-  // yield ExitCode.Success
 
   // for
   //   age <- IO(
