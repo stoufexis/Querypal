@@ -77,9 +77,9 @@ object FragmentOperations:
       fr" inner join" ++ toMeta.table.name ++ fr" on" ++ relation.joinCondition
 
   object GeneralOperators:
-    def leftParen: Argument  = fr"("
-    def rightParen: Argument = fr")"
-    def comma: Argument      = fr","
+    val leftParen: Argument  = fr"("
+    val rightParen: Argument = fr")"
+    val comma: Argument      = fr","
 
   object ConditionOperators:
     val and: ConditionOperator = fr"and"
@@ -104,3 +104,5 @@ object FragmentOperations:
 
     def construct: Fragment =
       (List(query.command, query.table.name) ++ query.arguments).foldFragments
+
+  val * : "*" = "*"

@@ -32,7 +32,7 @@ object Photo extends Model[Photo] {
 }
 
 given ModelMeta[Photo] =
-  deriveModelMeta[Photo](fr"photo")(Photo.name)(Photo.photographer)
+  deriveModelMeta[Photo](sql"photo")(Photo.name)(Photo.photographer)
 
 case class Person(name: String, age: Int)
 
@@ -41,7 +41,7 @@ object Person extends Model[Person]:
   val age  = makeColumn[Int](fr"age")
 
 given ModelMeta[Person] =
-  deriveModelMeta[Person](fr"person")(Person.name)(Person.age)
+  deriveModelMeta[Person](sql"person")(Person.name)(Person.age)
 
 given Relation[Photo, Person](Photo.photographer)
 
@@ -63,11 +63,10 @@ object Main extends IOApp {
 
     for
       age <- IO(
-        QueryStart(Person)
-          join Photo select (_.age === 13) or (_.name === "name")
+        QueryStart(Person) select * construct
       )
-    // aa <- age.query[(Person, Photo)].to[List].transact(xa)
-    // _  <- IO.println(aa)
+      aa <- age.query[Person].to[List].transact(xa)
+      _  <- IO.println(aa)
     yield ExitCode.Success
 
   // for

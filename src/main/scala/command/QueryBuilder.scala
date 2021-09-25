@@ -11,7 +11,7 @@ final class QueryBuilder[A, B <: Model[A]](model: B)(using
 ):
   val table = meta.table
 
-  def select: Where[A, B] = new Select(model)(
+  def select: Where[A, B] = Select(model)(
     Query(Commands.select, table, List[Argument]())
   ).select
 
@@ -24,7 +24,7 @@ final class QueryBuilder[A, B <: Model[A]](model: B)(using
       Query(Commands.select, table, List[Argument](SqlOperations.joinOp[A, C]))
     )
 
-  def delete: Where[A, B] = new Select(model)(
+  def delete: Where[A, B] = Select(model)(
     Query(Commands.delete, table, List[Argument]())
   ).select
 
