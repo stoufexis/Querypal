@@ -25,7 +25,8 @@ object FragmentOperations:
 
   sealed trait Field[+A, B]:
     val name: Fragment
-  case class Column[A, B](name: Fragment) extends Field[A, B]
+  case class Column[A, B](name: Fragment)        extends Field[A, B]
+  case class ForeignKey[A, B, C](name: Fragment) extends Field[A, B]
 
   case class PrimaryKey[A, B](field: Field[A, B])
 

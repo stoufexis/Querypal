@@ -10,7 +10,10 @@ object Common:
   type FieldValue[A] = (Field[?, A], Fragment)
 
   trait Model[A]:
-    protected def makeColumn[B](name: Fragment): Column[B, A] = Column(name)
+    protected def column[B](name: Fragment): Column[B, A] = Column(name)
+    protected def foreignKey[B, C](field: Field[B, C])(
+        name: Fragment
+    ): ForeignKey[B, A, C] = ForeignKey(name)
 
   trait ModelMeta[A: Mirror.ProductOf]:
     val primaryKey: PrimaryKey[Any, A]
