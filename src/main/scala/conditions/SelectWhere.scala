@@ -19,6 +19,14 @@ final class CompletableWhere[A, B <: Model[A]](model: B)(query: Query)
       )
     )
 
+final class Select[A, B <: Model[A]](model: B)(query: Query) {
+  def select: Where[A, B] = Where(model)(query.copy())
+}
+
 object Where:
   def apply[A, B <: Model[A]](model: B)(query: Query) =
     new CompletableWhere[A, B](model)(query)
+
+object Select:
+  def apply[A, B <: Model[A]](model: B)(query: Query) =
+    new Select[A, B](model)(query)

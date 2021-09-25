@@ -15,6 +15,7 @@ import scala.deriving.Mirror
 import scala.deriving.Mirror.ProductOf
 import scala.util.Random
 import doobie.util.update
+import DeriveModelMeta.deriveModelMeta
 
 val xa = Transactor.fromDriverManager[IO](
   "org.postgresql.Driver",                     // driver classname
@@ -30,24 +31,18 @@ case object PhotoFields {
   val photographer = Column[String, Photo](fr"photographer_name")
 }
 
-given ModelMeta[Photo](sql"photo") with {
-  val pk     = PrimaryKey(PhotoFields.name)
-  val fields = List(sql"name")
-
-}
+given ModelMeta[Photo] =
+  deriveModelMeta[Photo](fr"photo")(PhotoFields.name)(PhotoFields.photographer)
 
 case class Person(name: String, age: Int)
 
-given personModel: Model[Person] with {
+case object PersonModel extends Model[Person] {
   val name = Column[String, Person](fr"name")
   val age  = Column[Int, Person](fr"age")
 }
+given ModelMeta[Person] =
+  deriveModelMeta[Person](fr"person")(PersonModel.name)(PersonModel.age)
 
-given ModelMeta[Person](sql"person") with
-  val pk     = PrimaryKey(personModel.name)
-  val fields = (sql"name", sql"photographer_name").toList
-
-given Mapper[Person] = deriveMapper[Person]
 object Main extends IOApp {
 
   def run(args: List[String]): IO[ExitCode] =
@@ -56,10 +51,10 @@ object Main extends IOApp {
     for
       age <- IO(
         QueryBuilder(
-          personModel
-        ) insert Person("Person23", 34) construct
+          PersonModel
+        ) insert Person("Person345", 34) construct
       )
-      age <- age.update.run.transact(xa)
+    // age <- age.update.run.transact(xa)
     yield ExitCode.Success
 
   // val searchWord = "tef2"

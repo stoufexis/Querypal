@@ -10,12 +10,10 @@ object Common:
 
   trait Model[A]
 
-  // case class Model[A, B](fields: B)
-
-  trait ModelMeta[A: Mirror.ProductOf: ModelMeta](tableName: Fragment):
-    val pk: PrimaryKey[Any, A]
-    val table = Table(tableName)
-    val fields: List[Fragment]
+  trait ModelMeta[A: Mirror.ProductOf: ModelMeta]:
+    val primaryKey: PrimaryKey[Any, A]
+    val table: Table
+    def map(a: A): Tuple2[Iterator[Fragment], Iterator[Fragment]]
 
   case class Query(command: Command, table: Table, arguments: List[Argument])
 

@@ -38,7 +38,7 @@ object FragmentOperations:
       toMeta: ModelMeta[B]
   ) extends Relationship[A, B]:
     val joinCondition: Argument =
-      fromMeta.table.name ++ sql"." ++ from.name ++ fr"=" ++ toMeta.table.name ++ sql"." ++ toMeta.pk.field.name
+      fromMeta.table.name ++ sql"." ++ from.name ++ fr"=" ++ toMeta.table.name ++ sql"." ++ toMeta.primaryKey.field.name
 
   trait ManyToOne[A, B](from: Field[?, A])(using
       fromMeta: ModelMeta[A],
@@ -46,7 +46,7 @@ object FragmentOperations:
       toMeta: ModelMeta[B]
   ) extends Relationship[A, B]:
     val joinCondition: Argument =
-      fromMeta.table.name ++ sql"." ++ from.name ++ fr"=" ++ toMeta.table.name ++ sql"." ++ toMeta.pk.field.name
+      fromMeta.table.name ++ sql"." ++ from.name ++ fr"=" ++ toMeta.table.name ++ sql"." ++ toMeta.primaryKey.field.name
 
   trait OneToOne[A, B](from: Field[?, A])(using
       fromMeta: ModelMeta[A],
@@ -54,7 +54,7 @@ object FragmentOperations:
       toMeta: ModelMeta[B]
   ) extends Relationship[A, B]:
     val joinCondition: Argument =
-      fromMeta.table.name ++ sql"." ++ from.name ++ fr"=" ++ toMeta.table.name ++ sql"." ++ toMeta.pk.field.name
+      fromMeta.table.name ++ sql"." ++ from.name ++ fr"=" ++ toMeta.table.name ++ sql"." ++ toMeta.primaryKey.field.name
 
   trait FieldOps[A]:
     extension [B](x: Field[A, B])(using meta: ModelMeta[B])
@@ -83,7 +83,6 @@ object FragmentOperations:
   }
 
   object SqlOperations:
-    val set: Argument = fr" set"
     def commaSeparatedParened(content: List[Fragment]): Argument =
       sql"(" |+| content
         .drop(1)
@@ -91,7 +90,6 @@ object FragmentOperations:
           x ++ (GeneralOperators.comma ++ y)
         ) ++ GeneralOperators.rightParen
 
-    //select * from person inner join photo on person.name = photo.photographer_name where person.name = 'Stef'
     def joinOp[A, B](using
         relation: Relationship[A, B] | Relationship[B, A],
         toMeta: ModelMeta[B]
@@ -116,6 +114,7 @@ object FragmentOperations:
   object Arguments:
     val where: Argument  = fr" where"
     val values: Argument = fr" values"
+    val set: Argument    = fr" set"
 
   case class Table(name: Fragment)
 
