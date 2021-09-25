@@ -8,7 +8,7 @@ import doobie.util.fragment.Fragment
 import scala.deriving.Mirror
 import scala.compiletime.{constValue, erasedValue, summonInline}
 
-final class Insert[A <: Product, B <: Model[A]](model: B)(query: Query)(using
+final class Insert[A, B <: Model[A]](model: B)(query: Query)(using
     meta: ModelMeta[A]
 ):
   def apply(entity: A): Completable =
@@ -29,5 +29,5 @@ final class Insert[A <: Product, B <: Model[A]](model: B)(query: Query)(using
     ) {}
 
 object Insert:
-  def apply[A <: Product: ModelMeta, B <: Model[A]](model: B)(query: Query) =
+  def apply[A: ModelMeta, B <: Model[A]](model: B)(query: Query) =
     new Insert(model)(query)

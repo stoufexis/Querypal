@@ -4,9 +4,9 @@ import doobie.implicits._
 import doobie.util.fragment.Fragment
 import FragmentOperations.Commands
 import FragmentOperations._
-import javax.management.relation.Relation
+import FragmentOperations.Relation
 
-final class QueryBuilder[A <: Product, B <: Model[A]](model: B)(using
+final class QueryBuilder[A, B <: Model[A]](model: B)(using
     meta: ModelMeta[A]
 ):
   val table = meta.table
@@ -15,9 +15,11 @@ final class QueryBuilder[A <: Product, B <: Model[A]](model: B)(using
     Query(Commands.select, table, List[Argument]())
   ).select
 
-  type BiRef[B] = Ref[A, B] | Ref[B, A]
+  type BiRelation[B] = Relation[A, B] | Relation[B, A]
 
-  def join[C: ModelMeta: BiRef]: Select[A, B] =
+  def join[C: ModelMeta: BiRelation](
+      toJoin: Model[C]
+  ): Select[A, B] =
     Select(model)(
       Query(Commands.select, table, List[Argument](SqlOperations.joinOp[A, C]))
     )
@@ -34,8 +36,8 @@ final class QueryBuilder[A <: Product, B <: Model[A]](model: B)(using
       Query(Commands.update, table, List(Arguments.set, f(model)))
     )
 
-object QueryBuilder:
-  def apply[A <: Product: ModelMeta, B <: Model[A]](
+object QueryStart:
+  def apply[A: ModelMeta, B <: Model[A]](
       model: B
   ): QueryBuilder[A, B] =
     new QueryBuilder(model)

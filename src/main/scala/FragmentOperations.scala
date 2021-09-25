@@ -29,7 +29,7 @@ object FragmentOperations:
 
   case class PrimaryKey[A, B](field: Field[A, B])
 
-  trait Ref[A, B](from: Field[?, A])(using
+  trait Relation[A, B](from: Field[?, A])(using
       fromMeta: ModelMeta[A],
       toMeta: ModelMeta[B]
   ):
@@ -71,7 +71,7 @@ object FragmentOperations:
         ) ++ GeneralOperators.rightParen
 
     def joinOp[A, B](using
-        relation: Ref[A, B] | Ref[B, A],
+        relation: Relation[A, B] | Relation[B, A],
         toMeta: ModelMeta[B]
     ): Argument =
       fr" inner join" ++ toMeta.table.name ++ fr" on" ++ relation.joinCondition

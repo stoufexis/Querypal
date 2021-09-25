@@ -26,24 +26,24 @@ val xa = Transactor.fromDriverManager[IO](
 
 case class Photo(name: String, photographer: String)
 
-case object PhotoFields {
-  val name         = Column[String, Photo](fr"name")
-  val photographer = Column[String, Photo](fr"photographer_name")
+object Photo extends Model[Photo] {
+  val name         = makeColumn[String](fr"name")
+  val photographer = makeColumn[String](fr"photographer_name")
 }
 
 given ModelMeta[Photo] =
-  deriveModelMeta[Photo](fr"photo")(PhotoFields.name)(PhotoFields.photographer)
+  deriveModelMeta[Photo](fr"photo")(Photo.name)(Photo.photographer)
 
 case class Person(name: String, age: Int)
+
+object Person extends Model[Person]:
+  val name = makeColumn[String](fr"name")
+  val age  = makeColumn[Int](fr"age")
 
 given ModelMeta[Person] =
   deriveModelMeta[Person](fr"person")(Person.name)(Person.age)
 
-case object Person extends Model[Person]:
-  val name = makeColumn[String](fr"name")
-  val age  = makeColumn[Int](fr"age")
-
-given Ref[Photo, Person](PhotoFields.photographer)
+given Relation[Photo, Person](Photo.photographer)
 
 object Main extends IOApp {
 
@@ -63,11 +63,11 @@ object Main extends IOApp {
 
     for
       age <- IO(
-        QueryBuilder(Person)
-          select (_.name === "unknown") or (_.name like s"%${searchWord}") construct
+        QueryStart(Person)
+          join Photo select (_.age === 13) or (_.name === "name")
       )
-      aa <- age.query[(Person, Photo)].to[List].transact(xa)
-      _  <- IO.println(aa)
+    // aa <- age.query[(Person, Photo)].to[List].transact(xa)
+    // _  <- IO.println(aa)
     yield ExitCode.Success
 
   // for
