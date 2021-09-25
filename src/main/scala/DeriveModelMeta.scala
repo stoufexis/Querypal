@@ -41,6 +41,9 @@ object DeriveModelMeta:
     new ModelMeta[A] {
       val table      = Table(tableName)
       val primaryKey = PrimaryKey(pk)
+
+      // def makeColumn[B](name: Fragment) = Column[A, B](name)
+
       def map(a: A): (Iterator[Fragment], Iterator[Fragment]) = {
         val elemInstances = getTypeclassInstances[m.MirroredElemTypes]
         val elems         = a.asInstanceOf[Product].productIterator

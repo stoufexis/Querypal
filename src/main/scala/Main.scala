@@ -36,14 +36,14 @@ given ModelMeta[Photo] =
 
 case class Person(name: String, age: Int)
 
-case object PersonModel extends Model[Person] {
-  val name = Column[String, Person](fr"name")
-  val age  = Column[Int, Person](fr"age")
-}
 given ModelMeta[Person] =
-  deriveModelMeta[Person](fr"person")(PersonModel.name)(PersonModel.age)
+  deriveModelMeta[Person](fr"person")(Person.name)(Person.age)
 
-given ManyToOne[Photo, Person](PhotoFields.photographer)
+case object Person extends Model[Person]:
+  val name = makeColumn[String](fr"name")
+  val age  = makeColumn[Int](fr"age")
+
+given Ref[Photo, Person](PhotoFields.photographer)
 
 object Main extends IOApp {
 
@@ -63,7 +63,7 @@ object Main extends IOApp {
 
     for
       age <- IO(
-        QueryBuilder(PersonModel).join[Photo]
+        QueryBuilder(Person)
           select (_.name === "unknown") or (_.name like s"%${searchWord}") construct
       )
       aa <- age.query[(Person, Photo)].to[List].transact(xa)

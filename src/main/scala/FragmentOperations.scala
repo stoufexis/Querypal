@@ -29,27 +29,10 @@ object FragmentOperations:
 
   case class PrimaryKey[A, B](field: Field[A, B])
 
-  trait Relationship[A, B]:
-    val joinCondition: Argument
-
-  trait OneToMany[A, B](from: Field[?, A])(using
+  trait Ref[A, B](from: Field[?, A])(using
       fromMeta: ModelMeta[A],
       toMeta: ModelMeta[B]
-  ) extends Relationship[A, B]:
-    val joinCondition: Argument =
-      fromMeta.table.name ++ sql"." ++ from.name ++ fr"=" ++ toMeta.table.name ++ sql"." ++ toMeta.primaryKey.field.name
-
-  trait ManyToOne[A, B](from: Field[?, A])(using
-      fromMeta: ModelMeta[A],
-      toMeta: ModelMeta[B]
-  ) extends Relationship[A, B]:
-    val joinCondition: Argument =
-      fromMeta.table.name ++ sql"." ++ from.name ++ fr"=" ++ toMeta.table.name ++ sql"." ++ toMeta.primaryKey.field.name
-
-  trait OneToOne[A, B](from: Field[?, A])(using
-      fromMeta: ModelMeta[A],
-      toMeta: ModelMeta[B]
-  ) extends Relationship[A, B]:
+  ):
     val joinCondition: Argument =
       fromMeta.table.name ++ sql"." ++ from.name ++ fr"=" ++ toMeta.table.name ++ sql"." ++ toMeta.primaryKey.field.name
 
@@ -88,7 +71,7 @@ object FragmentOperations:
         ) ++ GeneralOperators.rightParen
 
     def joinOp[A, B](using
-        relation: Relationship[A, B] | Relationship[B, A],
+        relation: Ref[A, B] | Ref[B, A],
         toMeta: ModelMeta[B]
     ): Argument =
       fr" inner join" ++ toMeta.table.name ++ fr" on" ++ relation.joinCondition

@@ -15,9 +15,9 @@ final class QueryBuilder[A <: Product, B <: Model[A]](model: B)(using
     Query(Commands.select, table, List[Argument]())
   ).select
 
-  def join[C: ModelMeta](using
-      Relationship[A, C] | Relationship[C, A]
-  ): Select[A, B] =
+  type BiRef[B] = Ref[A, B] | Ref[B, A]
+
+  def join[C: ModelMeta: BiRef]: Select[A, B] =
     Select(model)(
       Query(Commands.select, table, List[Argument](SqlOperations.joinOp[A, C]))
     )
