@@ -18,6 +18,10 @@ This project is just an experiment and thus is fairly barebones and lacks featur
 sql"select * from person where person.age > 13 or ( person.nickname like `The%` and person.age < 40 )"
 ```
 
+## Boilerplate
+Due to the limitations of using doobie (namely the required use of fragments), theres a fair bit of boileplate required, even with metaprogramming techniques implemented. There is a version with much less necessary required boileplate code in the [zero-boilerplate branch](https://www.google.com) of this repo, implemented with strings instead of fragments. It cant be used with doobie but its a much more general implementation of the same ideas that could later be used with some other db interface.
+
+
 ## Quick Start
 *Note, familiarity with Scala 3, Doobie and Cats-effect is assumed throughout this doc*
 
@@ -57,7 +61,7 @@ Then we can derive a given instance of the ModelMeta type class for our Person e
 //It takes A type parameter of our domain entity, the name of our table, the name of the primary key, and the names of all remaining keys
 given  ModelMeta[Person] = deriveModelMeta[Person](fr"person")(fr"name")(fr"age", fr"nickname")
 ```
-*Now, thats plenty of boilerplate, but as this is project is still just an experiment, we are going to accept it for now.*
+*Now, thats plenty of boilerplate, but as this is project is still just an experiment, we are going to accept it for now. See [Boilerplate](## Boilerplate)*
 
 ### So what do we get from all that?
 
