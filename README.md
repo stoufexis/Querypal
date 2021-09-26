@@ -45,8 +45,7 @@ We can model it as:
 
 ```scala
 //column is a protected helped method of the Model[_] trait. It receives a type parameter expressing the intended 
-//type of the column and a Doobie Fragment that represents its name on the database. Its use to correctly type the model's 
-//fields so they can be used type safely in other operations
+//type of the column and a its name on the database. Its used to correctly type the model's fields so they can be used type safely in other operations
 object Person extends Model[Person]("person"):
   val name     = column[String]("name")
   val age      = column[Int]("age")
