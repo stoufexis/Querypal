@@ -1,9 +1,8 @@
-import doobie.util.fragment.Fragment
-import doobie.implicits._
 import FragmentOperations._
 import scala.deriving.Mirror
 import Common.ModelMeta
-import scala.compiletime.summonInline
+import scala.compiletime.{summonInline, constValue}
+import DeriveModelMeta.deriveModelMeta
 
 object Common:
 
@@ -11,21 +10,20 @@ object Common:
     * inference in other parts of the pipeline and some helpful methods to
     * construct the model
     */
-  trait Model[A]:
-    protected def column[B](name: Fragment): Column[A, B] = Column(name)
-    protected def foreignKey[B, C](field: Field[B, C])(
-        name: Fragment
-    ): ForeignKey[A, B, C] = ForeignKey(name)
+  trait Model[A](val tableName: String):
+    protected inline def deriveMeta(using m: Mirror.ProductOf[A]) =
+      deriveModelMeta[m.MirroredMonoType](tableName)
+    protected def column[B](name: String): Column[A, B] = Column(name)
 
   /** A type class applied to A, containing metadata about the model of A.
     */
   trait ModelMeta[A]:
-    val primaryKeyName: Fragment
+    val primaryKeyName: String
     val table: Table
 
     /** Deconstructs and instance of A so it can be used in queries
       */
-    def map(a: A): (Iterator[Fragment], Iterator[Fragment])
+    def map(a: A): (Iterator[String], Iterator[String])
 
   /** The query in its preconstructed form
     */
@@ -34,9 +32,9 @@ object Common:
   /** A field of A modeling a value member of type B
     */
   sealed trait Field[A, B]:
-    val name: Fragment
-  case class Column[A, B](name: Fragment)        extends Field[A, B]
-  case class ForeignKey[A, B, C](name: Fragment) extends Field[A, B]
+    val name: String
+  case class Column[A, B](name: String)        extends Field[A, B]
+  case class ForeignKey[A, B, C](name: String) extends Field[A, B]
 
   case class PrimaryKey[A, B](field: Field[A, B])
 
@@ -47,5 +45,5 @@ object Common:
       fromMeta: ModelMeta[A],
       toMeta: ModelMeta[B]
   ):
-    val joinCondition: Fragment =
-      fromMeta.table.name ++ fr"." ++ from.name ++ fr"=" ++ toMeta.table.name ++ fr"." ++ toMeta.primaryKeyName
+    val joinCondition: String =
+      fromMeta.table.name + s"." + from.name ++ s"=" + toMeta.table.name ++ s"." + toMeta.primaryKeyName

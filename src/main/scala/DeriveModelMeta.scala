@@ -1,4 +1,3 @@
-import doobie.util.fragment.Fragment
 import doobie.implicits._
 import scala.deriving.Mirror
 import scala.compiletime.{constValue, erasedValue, summonInline}
@@ -9,28 +8,40 @@ import FragmentOperations._
   */
 object DeriveModelMeta:
 
-  trait ToFragment[A] {
-    def toFragment(a: A): Fragment
+  trait ToString[A] {
+    def ToString(a: A): String
   }
 
-  given intToFragment: ToFragment[Int] with {
-    def toFragment(a: Int): Fragment = sql"${a}"
+  given intToString: ToString[Int] with {
+    def ToString(a: Int): String = s"${a}"
   }
 
-  given stringToFragment: ToFragment[String] with {
-    def toFragment(a: String): Fragment = sql"${a}"
+  given stringToString: ToString[String] with {
+    def ToString(a: String): String = s"'${a}'"
   }
 
-  inline def getTypeclassInstances[A <: Tuple]: List[ToFragment[Any]] =
+  inline def getElemLabels[A <: Tuple]: List[String] =
     inline erasedValue[A] match {
       case _: EmptyTuple => Nil
       case _: (head *: tail) =>
-        val headTypeClass = summonInline[ToFragment[head]]
+        val headElementLabel  = constValue[head].toString
+        val tailElementLabels = getElemLabels[tail]
+        headElementLabel :: tailElementLabels
+    }
+
+  inline def getElemLabelsHelper[A](using m: Mirror.Of[A]) =
+    getElemLabels[m.MirroredElemLabels]
+
+  inline def getTypeclassInstances[A <: Tuple]: List[ToString[Any]] =
+    inline erasedValue[A] match {
+      case _: EmptyTuple => Nil
+      case _: (head *: tail) =>
+        val headTypeClass = summonInline[ToString[head]]
 
         val tailTypeClasses = getTypeclassInstances[tail]
 
         headTypeClass
-          .asInstanceOf[ToFragment[Any]] :: getTypeclassInstances[tail]
+          .asInstanceOf[ToString[Any]] :: getTypeclassInstances[tail]
     }
 
   inline def summonInstancesHelper[A](using m: Mirror.Of[A]) =
@@ -38,18 +49,19 @@ object DeriveModelMeta:
 
   inline def deriveModelMeta[A](using
       m: Mirror.ProductOf[A]
-  )(tableName: Fragment)(pk: Fragment)(fields: Fragment*) =
+  )(tableName: String) =
     new ModelMeta[A] {
       val table          = Table(tableName)
-      val primaryKeyName = pk
+      val primaryKeyName = getElemLabels[m.MirroredElemLabels](0)
 
-      def map(a: A): (Iterator[Fragment], Iterator[Fragment]) = {
+      def map(a: A): (Iterator[String], Iterator[String]) = {
         val elemInstances = getTypeclassInstances[m.MirroredElemTypes]
+        val elemLabels    = getElemLabels[m.MirroredElemLabels]
         val elems         = a.asInstanceOf[Product].productIterator
 
-        val elemStrings = elems.zip(pk +: fields).zip(elemInstances).map {
-          case ((elem, field), instance) =>
-            (field, instance.toFragment(elem))
+        val elemStrings = elems.zip(elemLabels).zip(elemInstances).map {
+          case ((elem, label), instance) =>
+            (label, instance.ToString(elem))
         }
         (elemStrings.map(_._1), elemStrings.map(_._2))
       }

@@ -1,21 +1,22 @@
 import doobie.implicits._
-import doobie.util.fragment.Fragment
 import Common._
 import cats.kernel.Monoid
 import cats.implicits._
 import doobie.syntax.SqlInterpolator.SingleFragment.fromFragment
 import scala.annotation.targetName
+import doobie.Update0
+import doobie.util.fragment.Fragment
 
 object FragmentOperations:
-  opaque type Command = Fragment
+  opaque type Command = String
 
-  opaque type Argument = Fragment
+  opaque type Argument = String
 
-  opaque type ConditionOperator <: Argument = Fragment
-  opaque type Condition <: Argument         = Fragment
-  opaque type EqualsCondition <: Condition  = Fragment
-  opaque type SetArgument <: Argument       = Fragment
-  opaque type InsertArgument <: Argument    = Fragment
+  opaque type ConditionOperator <: Argument = String
+  opaque type Condition <: Argument         = String
+  opaque type EqualsCondition <: Condition  = String
+  opaque type SetArgument <: Argument       = String
+  opaque type InsertArgument <: Argument    = String
 
   /** Operators used in the query-building pipeline. They enable type checking
     * in the query construction and SQL-like syntax
@@ -24,34 +25,34 @@ object FragmentOperations:
     extension [B](x: Field[B, A])(using meta: ModelMeta[B])
       def ===(y: A): EqualsCondition = y match
         case z: Int =>
-          sql"${meta.table.name}" ++ sql"." ++ fr"${x.name} = ${(z: Int)}"
+          s"${meta.table.name}" ++ s"." ++ s"${x.name} = ${(z: Int)} "
         case z: String =>
-          sql"${meta.table.name}" ++ sql"." ++ fr"${x.name} = ${(z: String)}"
+          s"${meta.table.name}" ++ s"." ++ s"${x.name} = '${(z: String)}'' "
 
       def set(y: A): SetArgument = y match
-        case z: Int    => sql"${x.name} = ${z: Int}"
-        case z: String => sql"${x.name} = ${z: String}"
+        case z: Int    => s"${x.name} = ${z: Int} "
+        case z: String => s"${x.name} = '${z: String}' "
 
   given FieldOps[Int] with
     extension [B](x: Field[B, Int])(using meta: ModelMeta[B])
       def >(y: Int): Condition =
-        sql"${meta.table.name}" ++ sql"." ++ fr"${x.name} > $y"
+        s"${meta.table.name}" ++ s"." ++ s"${x.name} > $y "
 
       def <(y: Int): Condition =
-        sql"${meta.table.name}" ++ sql"." ++ fr"${x.name} < $y"
+        s"${meta.table.name}" ++ s"." ++ s"${x.name} < $y "
 
   given FieldOps[String] with {
     extension [B](x: Field[B, String])(using meta: ModelMeta[B])
       def like(y: String): Condition =
-        meta.table.name ++ fr".${x.name} like ${y}"
+        meta.table.name ++ s".${x.name} like '${y}' "
   }
 
   /** Helped methods that abstract the details of the sql syntax from the main
     * pipeline
     */
   object SqlOperations:
-    def commaSeparatedParened(content: List[Fragment]): Argument =
-      sql"(" |+| content
+    def commaSeparatedParened(content: List[String]): Argument =
+      s"(" |+| content
         .drop(1)
         .fold(content.head)((x, y) =>
           x ++ (GeneralOperators.comma ++ y)
@@ -61,41 +62,44 @@ object FragmentOperations:
         relation: Relation[A, B] | Relation[B, A],
         toMeta: ModelMeta[B]
     ): Argument =
-      fr" inner join" ++ toMeta.table.name ++ fr" on" ++ relation.joinCondition
+      s"inner join " + toMeta.table.name + s"on " + relation.joinCondition
 
   object GeneralOperators:
-    val leftParen: Argument  = fr"("
-    val rightParen: Argument = fr")"
-    val comma: Argument      = fr","
+    val leftParen: Argument  = s"( "
+    val rightParen: Argument = s") "
+    val comma: Argument      = s", "
 
   object ConditionOperators:
-    val and: ConditionOperator = fr"and"
-    val or: ConditionOperator  = fr"or"
+    val and: ConditionOperator = s"and "
+    val or: ConditionOperator  = s"or "
 
   object Commands:
-    val update: Command = fr"update"
-    val insert: Command = fr"insert into"
-    val delete: Command = fr"delete from"
-    val select: Command = fr"select * from"
+    val update: Command = s"update "
+    val insert: Command = s"insert into "
+    val delete: Command = s"delete from "
+    val select: Command = s"select * from "
 
   object Arguments:
-    val where: Argument  = fr" where"
-    val values: Argument = fr" values"
-    val set: Argument    = fr" set"
+    val where: Argument  = s"where "
+    val values: Argument = s"values "
+    val set: Argument    = s"set "
 
-  case class Table(name: Fragment)
+  case class Table(name: String)
 
   /** A trait that enables any part of the pipeline to become a terminal step
     */
   trait Completable(query: Query):
     def complete: Argument =
-      query.arguments.foldFragments
+      query.arguments.foldStrings
 
     def construct: Fragment =
-      (List(query.command, query.table.name) ++ query.arguments).foldFragments
+      Update0(
+        (List(query.command, query.table.name) ++ query.arguments).foldStrings,
+        None
+      ).toFragment
 
-    extension (content: List[Fragment])
-      def foldFragments =
-        content.fold(Monoid[Fragment].empty)(_ |+| _)
+    extension (content: List[String])
+      def foldStrings =
+        content.fold(Monoid[String].empty)(_ |+| _)
 
-  val * : "*" = "*"
+  val * : "* " = "* "
