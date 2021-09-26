@@ -40,6 +40,7 @@ and our entity:
 ```scala
 case  class  Person(name: String, age: Int, nickname: String)
 ```
+*Note, the first member of the entity is assumed to be the primary key*
 
 We can model it as:
 
@@ -52,7 +53,7 @@ object Person extends Model[Person]("person"):
   val age      = column[Int]("age")
   val nickname = column[String]("nickname")
 ```
-*2. We are placing this info on the companion object of the Person case class with the same name, this enables some very handy syntax when using the dsl*
+We are placing this info on the companion object of the Person case class with the same name, this enables some very handy syntax when using the dsl*
 
 Then we can derive a given instance of the ModelMeta type class for our Person entity.
 ```scala
