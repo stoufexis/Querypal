@@ -18,8 +18,8 @@ This project is just an experiment and thus is fairly barebones and lacks featur
 sql"select * from person where person.age > 13 or ( person.nickname like `The%` and person.age < 40 )"
 ```
 
-## Boilerplate
-Due to the limitations of using doobie (namely the required use of fragments), theres a fair bit of boileplate required, even with metaprogramming techniques implemented. There is a version with much less necessary required boileplate code in the [zero-boilerplate branch](https://github.com/StefanosTouf/Querypal/tree/zero-boilerplate) of this repo, implemented with strings instead of fragments. It cant be used with doobie but its a much more general implementation of the same ideas that could later be used with some other db interface.
+## Notes
+- **Similarities with slick**: During writting this project i was unaware of exactly how Slick queries are composed, but it turns out Querypal's and Slick's approach is very similar.
 
 
 ## Quick Start
@@ -47,21 +47,26 @@ We can model it as:
 //column is a protected helped method of the Model[_] trait. It receives a type parameter expressing the intended 
 //type of the column and a Doobie Fragment that represents its name on the database. Its use to correctly type the model's 
 //fields so they can be used type safely in other operations
-object  Person  extends  Model[Person]:
-	val  name = column[String](fr"name")
-	val  age = column[Int](fr"age")
-	val  nickname = column[String](fr"nickname")
+object Person extends Model[Person]("person"):
+  val name     = column[String]("name")
+  val age      = column[Int]("age")
+  val nickname = column[String]("nickname")
 ```
-*1. To get around some limitations of Doobie, we have to define the names as Fragments*
 *2. We are placing this info on the companion object of the Person case class with the same name, this enables some very handy syntax when using the dsl*
 
 Then we can derive a given instance of the ModelMeta type class for our Person entity.
 ```scala
+//ModelMeta takes the table name as a parameter
 //ModelMeta is a type class that holds meta-information about our Model and useful operations like object mapping. 
-//It takes A type parameter of our domain entity, the name of our table, the name of the primary key, and the names of all remaining keys
-given  ModelMeta[Person] = deriveModelMeta[Person](fr"person")(fr"name")(fr"age", fr"nickname")
+object Person extends Model[Person]("person"):
+  val name     = column[String]("name")
+  val age      = column[Int]("age")
+  val nickname = column[String]("nickname")
+  
+  object Meta:
+    given ModelMeta[Person] = deriveMeta
 ```
-*Now, thats plenty of boilerplate, but as this is project is still just an experiment, we are going to accept it for now. See [Boilerplate](## Boilerplate)*
+
 
 ### So what do we get from all that?
 
@@ -151,11 +156,12 @@ We can see that theres a one to many relationship between ```person``` and ```ph
 
 Lets create our querypal model and derive our metadata
 ```scala
-object  Photo  extends  Model[Photo]:
-	val  name = column[String](fr"name")
-	val  photographer = column[String](phNamef)
+object Photo extends Model[Photo]("photo"):
+  val name         = column[String]("name")
+  val photographer = column[String]("photographer")
 
-given  ModelMeta[Photo] = deriveModelMeta[Photo](sql"photo")(fr"name")(fr"photographer_name")
+  object Meta:
+    given ModelMeta[Photo] = deriveMeta
 ```
 Now lets define a relationship between ```person``` and ```photo```
 ```scala
