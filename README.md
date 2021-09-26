@@ -7,7 +7,7 @@ Querypal is a type-safe querying dsl built on top of **Doobie** and **Cats-effec
 - **Type level operations**: Querypal uses type level operations to achieve some of its features.
 - **Object mapping**: Querypal can map a case class to a correct insert query
 
-This project is just an experiment and thus is fairly barebones and lacks features that would make it a complete tool for DB interaction (eg The only types currently supported currrently are ``Int`` and ``String``, some sql operations arent supported etc). This can of course change in the future :-).  
+This project is a personal hobby project meant for practice and experimentation and thus is fairly barebones and lacks features that would make it a complete tool for DB interaction (eg The only types currently supported currrently are ``Int`` and ``String``, some sql operations arent supported etc). This can of course change in the future :-).  
 
 *demo of usage:*
 ![complex-query-demo](https://user-images.githubusercontent.com/61254766/134810182-26433e92-276a-4b1e-ae11-20f4fbef7d5d.gif)
