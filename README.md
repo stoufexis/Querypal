@@ -53,7 +53,7 @@ object Person extends Model[Person]("person"):
   val age      = column[Int]("age")
   val nickname = column[String]("nickname")
 ```
-We are placing this info on the companion object of the Person case class with the same name, this enables some very handy syntax when using the dsl*
+*We are placing this info on the companion object of the Person case class with the same name, this enables some very handy syntax when using the dsl*
 
 Then we can derive a given instance of the ModelMeta type class for our Person entity.
 ```scala
