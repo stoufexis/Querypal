@@ -44,6 +44,7 @@ case  class  Person(name: String, age: Int, nickname: String)
 We can model it as:
 
 ```scala
+//Model takes the table name as a parameter
 //column is a protected helped method of the Model[_] trait. It receives a type parameter expressing the intended 
 //type of the column and a its name on the database. Its used to correctly type the model's fields so they can be used type safely in other operations
 object Person extends Model[Person]("person"):
@@ -55,7 +56,6 @@ object Person extends Model[Person]("person"):
 
 Then we can derive a given instance of the ModelMeta type class for our Person entity.
 ```scala
-//ModelMeta takes the table name as a parameter
 //ModelMeta is a type class that holds meta-information about our Model and useful operations like object mapping. 
 object Person extends Model[Person]("person"):
   val name     = column[String]("name")
