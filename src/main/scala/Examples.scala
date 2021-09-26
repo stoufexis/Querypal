@@ -51,7 +51,9 @@ object Main extends IOApp {
     implicit val han = LogHandler.jdkLogHandler
 
     val insertPerson =
-      QueryBuilder(Person) insert Person("Jack10", 34, "The kid") construct
+      QueryBuilder(
+        Person
+      ) update (_.nickname set "AA") where (_.name === "Jack2") construct
 
     for _ <- insertPerson.update.run.transact(xa)
     yield ExitCode.Success

@@ -27,7 +27,7 @@ object FragmentOperations:
         case z: Int =>
           s"${meta.table.name}" ++ s"." ++ s"${x.name} = ${(z: Int)} "
         case z: String =>
-          s"${meta.table.name}" ++ s"." ++ s"${x.name} = '${(z: String)}'' "
+          s"${meta.table.name}" ++ s"." ++ s"${x.name} = '${(z: String)}' "
 
       def set(y: A): SetArgument = y match
         case z: Int    => s"${x.name} = ${z: Int} "
@@ -80,9 +80,9 @@ object FragmentOperations:
     val select: Command = s"select * from "
 
   object Arguments:
-    val where: Argument  = s"where "
-    val values: Argument = s"values "
-    val set: Argument    = s"set "
+    val where: Argument  = s" where "
+    val values: Argument = s" values "
+    val set: Argument    = s" set "
 
   case class Table(name: String)
 
