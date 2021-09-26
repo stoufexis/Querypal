@@ -43,9 +43,9 @@ object Common:
   /** A type level declaration of a Relation between A and B, used to validate
     * the existence of a relation during compile time
     */
-  trait Relation[A, B](from: Field[?, A])(using
+  trait Relation[A, B](from: Field[A, ?])(using
       fromMeta: ModelMeta[A],
       toMeta: ModelMeta[B]
   ):
-    val joinCondition: Argument =
-      fromMeta.table.name ++ sql"." ++ from.name ++ fr"=" ++ toMeta.table.name ++ sql"." ++ toMeta.primaryKeyName
+    val joinCondition: Fragment =
+      fromMeta.table.name ++ fr"." ++ from.name ++ fr"=" ++ toMeta.table.name ++ fr"." ++ toMeta.primaryKeyName

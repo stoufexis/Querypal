@@ -4,7 +4,6 @@ import doobie.implicits._
 import doobie.util.fragment.Fragment
 import FragmentOperations.Commands
 import FragmentOperations._
-import FragmentOperations.Relation
 
 /** The starting point of every query with A being the entity and B being the
   * Model of A (an object containing the fields).
