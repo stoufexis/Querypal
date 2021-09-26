@@ -19,7 +19,7 @@ sql"select * from person where person.age > 13 or ( person.nickname like `The%` 
 ```
 
 ## Boilerplate
-Due to the limitations of using doobie (namely the required use of fragments), theres a fair bit of boileplate required, even with metaprogramming techniques implemented. There is a version with much less necessary required boileplate code in the [zero-boilerplate branch](https://www.google.com) of this repo, implemented with strings instead of fragments. It cant be used with doobie but its a much more general implementation of the same ideas that could later be used with some other db interface.
+Due to the limitations of using doobie (namely the required use of fragments), theres a fair bit of boileplate required, even with metaprogramming techniques implemented. There is a version with much less necessary required boileplate code in the [zero-boilerplate branch](https://github.com/StefanosTouf/Querypal/tree/zero-boilerplate) of this repo, implemented with strings instead of fragments. It cant be used with doobie but its a much more general implementation of the same ideas that could later be used with some other db interface.
 
 
 ## Quick Start
