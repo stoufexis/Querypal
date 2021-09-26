@@ -12,7 +12,7 @@ import FragmentOperations.Arguments
 final class Where[A, B <: Model[A]](model: B)(query: Query)
     extends Completable(query):
 
-  def apply(all: "*"): Completable = new Completable(query) {}
+  def apply(all: "* "): Completable = new Completable(query) {}
 
   def apply(f: B => Condition): Conditional[A, B] & Completable =
     Conditional(model)(
@@ -22,7 +22,7 @@ final class Where[A, B <: Model[A]](model: B)(query: Query)
     )
 
 final class Select[A, B <: Model[A]](model: B)(query: Query) {
-  def select: Where[A, B] = Where(model)(query.copy())
+  def select: Where[A, B] = Where(model)(query)
 }
 
 object Where:

@@ -49,17 +49,16 @@ object DeriveModelMeta:
 
   inline def deriveModelMeta[A](using
       m: Mirror.ProductOf[A]
-  )(tableName: String) =
+  )(tableName: String)(fields: Seq[String]) =
     new ModelMeta[A] {
       val table          = Table(tableName)
       val primaryKeyName = getElemLabels[m.MirroredElemLabels](0)
 
       def map(a: A): (Iterator[String], Iterator[String]) = {
         val elemInstances = getTypeclassInstances[m.MirroredElemTypes]
-        val elemLabels    = getElemLabels[m.MirroredElemLabels]
         val elems         = a.asInstanceOf[Product].productIterator
 
-        val elemStrings = elems.zip(elemLabels).zip(elemInstances).map {
+        val elemStrings = elems.zip(fields).zip(elemInstances).map {
           case ((elem, label), instance) =>
             (label, instance.ToString(elem))
         }

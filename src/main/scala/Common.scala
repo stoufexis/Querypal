@@ -11,8 +11,10 @@ object Common:
     * construct the model
     */
   trait Model[A](val tableName: String):
-    protected inline def deriveMeta(using m: Mirror.ProductOf[A]) =
-      deriveModelMeta[m.MirroredMonoType](tableName)
+    protected inline def deriveMeta(fields: Field[?, ?]*)(using
+        m: Mirror.ProductOf[A]
+    ) =
+      deriveModelMeta[m.MirroredMonoType](tableName)(fields.map(_.name))
     protected def column[B](name: String): Column[A, B] = Column(name)
 
   /** A type class applied to A, containing metadata about the model of A.

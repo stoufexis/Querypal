@@ -27,7 +27,7 @@ object Photo extends Model[Photo]("photo"):
   val photographer = column[String]("photographer")
 
   object Meta:
-    given ModelMeta[Photo] = deriveMeta
+    given ModelMeta[Photo] = deriveMeta(name, photographer)
 
 case class Person(name: String, age: Int, nickname: String)
 
@@ -37,7 +37,7 @@ object Person extends Model[Person]("person"):
   val nickname = column[String]("nickname")
 
   object Meta:
-    given ModelMeta[Person] = deriveMeta
+    given ModelMeta[Person] = deriveMeta(name, age, nickname)
 
 import Photo.Meta.{given, *}
 import Person.Meta.{given, *}
@@ -50,12 +50,13 @@ object Main extends IOApp {
   def run(args: List[String]): IO[ExitCode] =
     implicit val han = LogHandler.jdkLogHandler
 
-    val insertPerson =
-      QueryBuilder(
-        Person
-      ) update (_.nickname set "AA") where (_.name === "Jack2") construct
+    val del = QueryBuilder(
+      Person
+    ) delete (_.name like "Jack_%") construct
 
-    for _ <- insertPerson.update.run.transact(xa)
+    for
+      aa <- del.update.run.transact(xa)
+      _  <- IO.println(aa)
     yield ExitCode.Success
 
 }
