@@ -64,7 +64,7 @@ object Person extends Model[Person]("person"):
   val nickname = column[String]("nickname")
   
   object Meta:
-    given ModelMeta[Person] = deriveMeta
+    given ModelMeta[Person] = deriveMeta(name, age, nickname)
 ```
 
 
@@ -161,7 +161,7 @@ object Photo extends Model[Photo]("photo"):
   val photographer = column[String]("photographer")
 
   object Meta:
-    given ModelMeta[Photo] = deriveMeta
+    given ModelMeta[Photo] = deriveMeta(name, photographer)
 ```
 Now lets define a relationship between ```person``` and ```photo```
 ```scala
