@@ -7,7 +7,7 @@ Querypal is a type-safe querying dsl built on top of **Doobie** and **Cats-effec
 - **Type level operations**: Querypal uses type level operations to achieve some of its features.
 - **Object mapping**: Querypal can map a case class to a correct insert query
 
-This project is just an experiment and thus lacks features that would make it a complete tool for DB interaction (eg The only types currently supported currrently are ``Int`` and ``String``, some sql operations arent supported etc). This can of course change in the future :-).  
+This project is just an experiment and thus is fairly barebones and lacks features that would make it a complete tool for DB interaction (eg The only types currently supported currrently are ``Int`` and ``String``, some sql operations arent supported etc). This can of course change in the future :-).  
 
 *demo of usage:*
 ![complex-query-demo](https://user-images.githubusercontent.com/61254766/134810182-26433e92-276a-4b1e-ae11-20f4fbef7d5d.gif)
@@ -23,12 +23,12 @@ sql"select * from person where person.age > 13 or ( person.nickname like `The%` 
 
 Lets define a querypal model for one of our database tables
 
-Given the table **Person**:
+Given the table ```person```:
 ```sql
 create table person  
 (  
     name     varchar not null  constraint person_pk  primary key,  
-	age      integer,  
+    age      integer,  
     nickname varchar not null  
 );
 ```
@@ -40,8 +40,9 @@ case  class  Person(name: String, age: Int, nickname: String)
 We can model it as:
 
 ```scala
-//column is method of the Model[_] trait. It receives a type parameter expressing the intended 
-//type of the column and a Doobie Fragment that represents its name on the database
+//column is a protected helped method of the Model[_] trait. It receives a type parameter expressing the intended 
+//type of the column and a Doobie Fragment that represents its name on the database. Its use to correctly type the model's 
+//fields so they can be used type safely in other operations
 object  Person  extends  Model[Person]:
 	val  name = column[String](fr"name")
 	val  age = column[Int](fr"age")
@@ -52,8 +53,9 @@ object  Person  extends  Model[Person]:
 
 Then we can derive a given instance of the ModelMeta type class for our Person entity.
 ```scala
-//ModelMeta is a type class that holds meta-information about our Model and useful operations like object mapping. It takes A type parameter of our domain entity, the name of our table, the name of the primary key, and the names of all remaining keys
-given  ModelMeta[Person] =deriveModelMeta[Person](fr"person")(fr"name")(fr"age", fr"nickname")
+//ModelMeta is a type class that holds meta-information about our Model and useful operations like object mapping. 
+//It takes A type parameter of our domain entity, the name of our table, the name of the primary key, and the names of all remaining keys
+given  ModelMeta[Person] = deriveModelMeta[Person](fr"person")(fr"name")(fr"age", fr"nickname")
 ```
 *Now, thats plenty of boilerplate, but as this is project is still just an experiment, we are going to accept it for now.*
 
@@ -76,7 +78,7 @@ QueryBuilder(Person).select(*).construct
 ```
 **So what is actually happening?**
 
-Each method call defines a step in the pipeline, receiving a query and transforming it. At the end we call construct to get back the query in the form of a doobie fragment that can be used to query the database, just like the fragments created with pure doobie. 
+Each method call defines a transformation of the query and returns the next step of the pipeline. Every step provides specific methods that allow transformations to that query. At the end we call construct to compile the query in the form of a doobie fragment that can be used to query the database, just like the fragments created with pure doobie. 
 ```scala 
 val selectAll = QueryBuilder(Person) select * construct
 
@@ -95,30 +97,38 @@ yield  ExitCode.Success
 ```
 ### Object mapping
 With query pal you get direct mapping of case classes to complete insert commands. 
+
 ```scala
 QueryBuilder(Person) insert Person("John", 34, "The kid") construct
+
+//it compiles to
+sql"insert into person(name, age ,nickname)  values ('John', 34, 'The kid')"
 ```
 
 ### Autocompletes:
 One of the biggest conveniences querypal that query pal provides is autocompletes. On every step you can get suggestions for your next move.
 
 *simple autocomplete example:*
+
 ![demo_simple_autocomplete](https://user-images.githubusercontent.com/61254766/134810206-59813b22-f3af-4195-be3e-694961c14cf4.gif)
 
 
 Where autocompletes shine the most is during composition of conditionals and complex queries.
+
 ![demo_autocompletes](https://user-images.githubusercontent.com/61254766/134810211-208b59df-32d3-4794-a621-fc9362f5fe2b.gif)
 
 
-When you need to reference your table inside your query, querypal provides you with a lambda, giving you your model and expecting back a condition. Then using the underscore syntax for lambdas you can reference any of your fields (while getting useful autocompletes) and construct the condition using querypals operators (very familiar from sql). 
+When you need to reference your table inside your query, querypal provides you with a lambda, giving you your model and expecting back a condition. Then using the underscore syntax for lambdas you can reference any of your fields (while getting useful autocompletes) and construct the condition using querypals operators resulting in a functional pipeline that closely resembles an sql query. 
 
 Querypal also makes sure you cant write an invalid query, by only giving you access to the correct possible next steps
+
 ![demo_query_pipeline_checking](https://user-images.githubusercontent.com/61254766/134810220-8932b7cd-21c7-49c3-b927-7e4d68ae7107.gif)
 
 
 ### Type checking
 
 When composing a complex query, its often the case that you tried to insert, compare or set a column with a value of a different type. Querypal's typed model fields and smart operators will let you know immediately when youve made such a mistake.
+
 ![demo_compile_errors](https://user-images.githubusercontent.com/61254766/134810233-30bacf3d-074a-4b27-995b-5ddac6c42810.gif)
 
 
@@ -129,7 +139,7 @@ Given another table named ```photos```
 ```sql
 create table photo  
 (  
-    name            varchar not null  constraint photo_pk  primary key,  
+    	name              varchar not null  constraint photo_pk  primary key,  
 	photographer_name varchar not null  constraint photographer__fk  references person  
 );
 ```
@@ -154,8 +164,12 @@ QueryBuilder(Person) join Photo select * construct
 ```
 Querypals relations are expressed on the type level. Thus, it lets you know when attempting to join two tables that dont satisfy the constraint of a relation
 
+![demo_join_typelevel](https://user-images.githubusercontent.com/61254766/134810907-e5452b08-e8cc-475b-b9a4-80439b87a685.gif)
+
+
 ### As a result
 Combining all these features you get a very  intuitive, easy to use tool for constructing complex, and composable quries through a functional pipeline.
+
 ![complex-query-demo](https://user-images.githubusercontent.com/61254766/134810240-e4a9a322-3277-41c1-9962-fdfeb9affb36.gif)
 
 
