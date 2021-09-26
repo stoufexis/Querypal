@@ -19,24 +19,9 @@ object FragmentOperations:
   opaque type SetArgument <: Argument       = Fragment
   opaque type InsertArgument <: Argument    = Fragment
 
-  extension (content: List[Fragment])
-    def foldFragments =
-      content.fold(Monoid[Fragment].empty)(_ |+| _)
-
-  sealed trait Field[+A, B]:
-    val name: Fragment
-  case class Column[A, B](name: Fragment)        extends Field[A, B]
-  case class ForeignKey[A, B, C](name: Fragment) extends Field[A, B]
-
-  case class PrimaryKey[A, B](field: Field[A, B])
-
-  trait Relation[A, B](from: Field[?, A])(using
-      fromMeta: ModelMeta[A],
-      toMeta: ModelMeta[B]
-  ):
-    val joinCondition: Argument =
-      fromMeta.table.name ++ sql"." ++ from.name ++ fr"=" ++ toMeta.table.name ++ sql"." ++ toMeta.primaryKey.field.name
-
+  /** Operators used in the query-building pipeline. They enable type checking
+    * in the query construction and SQL-like syntax
+    */
   trait FieldOps[A]:
     extension [B](x: Field[A, B])(using meta: ModelMeta[B])
       def ===(y: A): EqualsCondition = y match
@@ -63,6 +48,9 @@ object FragmentOperations:
         meta.table.name ++ fr".${x.name} like ${y}"
   }
 
+  /** Helped methods that abstract the details of the sql syntax from the main
+    * pipeline
+    */
   object SqlOperations:
     def commaSeparatedParened(content: List[Fragment]): Argument =
       sql"(" |+| content
@@ -99,11 +87,17 @@ object FragmentOperations:
 
   case class Table(name: Fragment)
 
+  /** A trait that enables any part of the pipeline to become a terminal step
+    */
   trait Completable(query: Query):
     def complete: Argument =
       query.arguments.foldFragments
 
     def construct: Fragment =
       (List(query.command, query.table.name) ++ query.arguments).foldFragments
+
+    extension (content: List[Fragment])
+      def foldFragments =
+        content.fold(Monoid[Fragment].empty)(_ |+| _)
 
   val * : "*" = "*"

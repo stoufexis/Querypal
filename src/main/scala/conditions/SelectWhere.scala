@@ -4,6 +4,11 @@ import doobie.implicits._
 import FragmentOperations._
 import FragmentOperations.Arguments
 
+/** Select and where are intermediary classes. They help preserve the SQL-like
+  * syntax of the querypal dsl. A is the entity being queried and B the object
+  * containing A's modeled fields.
+  */
+
 final class Where[A, B <: Model[A]](model: B)(query: Query)
     extends Completable(query):
 

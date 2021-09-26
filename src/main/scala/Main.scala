@@ -26,22 +26,27 @@ val xa = Transactor.fromDriverManager[IO](
 
 case class Photo(name: String, photographer: String)
 
+val namef   = fr"name"
+val phNamef = fr"photographer_name"
+
 object Photo extends Model[Photo] {
-  val name         = column[String](fr"name")
-  val photographer = foreignKey(Person.name)(fr"photographer_name")
+  val name         = column[String](namef)
+  val photographer = foreignKey(Person.name)(phNamef)
 }
 
 given ModelMeta[Photo] =
-  deriveModelMeta[Photo](sql"photo")(Photo.name)(Photo.photographer)
+  deriveModelMeta[Photo](sql"photo")(namef)(phNamef)
 
 case class Person(name: String, age: Int)
 
+val agef = fr"name"
+
 object Person extends Model[Person]:
-  val name = column[String](fr"name")
-  val age  = column[Int](fr"age")
+  val name = column[String](namef)
+  val age  = column[Int](agef)
 
 given ModelMeta[Person] =
-  deriveModelMeta[Person](sql"person")(Person.name)(Person.age)
+  deriveModelMeta[Person](sql"person")(namef)(agef)
 
 given Relation[Photo, Person](Photo.photographer)
 

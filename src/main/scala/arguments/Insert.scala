@@ -7,10 +7,13 @@ import cats.implicits._
 import doobie.util.fragment.Fragment
 import scala.deriving.Mirror
 import scala.compiletime.{constValue, erasedValue, summonInline}
+import FragmentOperations.Completable
 
-final class Insert[A, B <: Model[A]](model: B)(query: Query)(using
-    meta: ModelMeta[A]
-):
+/** Insert receives an instance of A, and maps it to an insert values statement
+  */
+
+final class Insert[A](query: Query)(using meta: ModelMeta[A])
+    extends (A => Completable):
   def apply(entity: A): Completable =
     val foldedFields =
       SqlOperations.commaSeparatedParened(
@@ -29,5 +32,5 @@ final class Insert[A, B <: Model[A]](model: B)(query: Query)(using
     ) {}
 
 object Insert:
-  def apply[A: ModelMeta, B <: Model[A]](model: B)(query: Query) =
-    new Insert(model)(query)
+  def apply[A: ModelMeta](query: Query) =
+    new Insert(query)

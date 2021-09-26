@@ -5,6 +5,8 @@ import scala.compiletime.{constValue, erasedValue, summonInline}
 import Common._
 import FragmentOperations._
 
+/** Automatic derivation of instances of the ModelMeta type class for entity A
+  */
 object DeriveModelMeta:
 
   trait ToFragment[A] {
@@ -36,10 +38,10 @@ object DeriveModelMeta:
 
   inline def deriveModelMeta[A](using
       m: Mirror.ProductOf[A]
-  )(tableName: Fragment)(pk: Field[Any, A])(fields: Field[Any, A]*) =
+  )(tableName: Fragment)(pk: Fragment)(fields: Fragment*) =
     new ModelMeta[A] {
-      val table      = Table(tableName)
-      val primaryKey = PrimaryKey(pk)
+      val table          = Table(tableName)
+      val primaryKeyName = pk
 
       def map(a: A): (Iterator[Fragment], Iterator[Fragment]) = {
         val elemInstances = getTypeclassInstances[m.MirroredElemTypes]
@@ -47,7 +49,7 @@ object DeriveModelMeta:
 
         val elemStrings = elems.zip(pk +: fields).zip(elemInstances).map {
           case ((elem, field), instance) =>
-            (field.name, instance.toFragment(elem))
+            (field, instance.toFragment(elem))
         }
         (elemStrings.map(_._1), elemStrings.map(_._2))
       }

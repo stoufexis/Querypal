@@ -3,9 +3,14 @@ import doobie.util.fragment.Fragment
 import doobie.implicits._
 import FragmentOperations._
 
-final class Conditional[A, B <: Model[A]](model: B)(
-    query: Query
-) extends Completable(query):
+/** Conditional helps you construct the conditions of your query. With A being
+  * the entity queried and B being the object containing the modeled fields of
+  * A. On each step, B is provided to take advantage of autocompletes and create
+  * typed conditionals.
+  */
+
+final class Conditional[A, B <: Model[A]](model: B)(query: Query)
+    extends Completable(query):
 
   def and(f: B => Condition) =
     Conditional(model)(
@@ -21,9 +26,7 @@ final class Conditional[A, B <: Model[A]](model: B)(
       )
     )
 
-  def bind(
-      f: Conditional[A, B] => Conditional[A, B]
-  ) =
+  def bind(f: Conditional[A, B] => Conditional[A, B]) =
     Conditional(model)(
       query.copy(arguments =
         query.arguments
