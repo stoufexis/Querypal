@@ -170,12 +170,38 @@ given  Relation[Photo, Person](Photo.photographer)
 ```
 As a result, we can now compose join queries and have querypal check their validity
 ```scala
-QueryBuilder(Person) join Photo select * construct
+QueryBuilder(Person) select * join Photo construct
 ```
 Querypals relations are expressed on the type level. Thus, it lets you know when attempting to join two tables that dont satisfy the constraint of a relation
 
 ![demo_join_typelevel](https://user-images.githubusercontent.com/61254766/134810907-e5452b08-e8cc-475b-b9a4-80439b87a685.gif)
 
+Every Join operation initiates a select operation for the joined model. This means you can chain an unlimited amount of joins and select from the joined entities
+
+To demonstrate, lets create a third enity/model
+```scala
+object Pet extends Model[Pet]("pet"):
+  val name  = column[String]("name")
+  val owner = column[Int]("owner_name")
+
+  object Meta:
+    given ModelMeta[Pet] = deriveMeta(name, owner)
+    
+given Relation[Pet, Person](Pet.owner)
+```
+
+Now we can join Photo and Pet to Person while selecting from them
+```scala
+//after joining with photo, you are selecting from photo.
+//after joining with pet, you are selecting from pet
+val multiJoin = QueryBuilder(Person) select (_.age > 20) join
+      Photo select (_.name like "%Bob") join Pet select (_.name like "G%") construct
+```
+The above query compiles to
+```scala
+sql"select * from person inner join photo on photo.photographer_name = person.name inner join pet on pet.owner_name = person.name where person.age > 20 and photo.name like '%Bob' and pet.name like 'G%' "
+```
+*Note: Querypal uses inner joins exclusively*
 
 ### As a result
 Combining all these features you get a very  intuitive, easy to use tool for constructing complex, and composable quries through a functional pipeline.
