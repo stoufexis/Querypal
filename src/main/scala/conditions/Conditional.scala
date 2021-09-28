@@ -10,7 +10,15 @@ import FragmentOperations._
   */
 
 final class Conditional[A, B <: Model[A]](model: B)(query: Query)
-    extends Completable:
+    extends Joinable[A, B],
+      Completable:
+
+  def join[C: ModelMeta: BiRelation, D <: Model[C]](
+      toJoin: D
+  ): JoinedSelect[C, D] =
+    JoinedSelect(toJoin)(
+      query.copy(joins = query.joins :+ SqlOperations.joinOp[A, C])
+    )
 
   def and(f: B => Condition) =
     Conditional(model)(
@@ -46,5 +54,5 @@ final class Conditional[A, B <: Model[A]](model: B)(query: Query)
   def construct: Fragment = SqlOperations.construct(query)
 
 object Conditional:
-  def apply[A, B <: Model[A]](model: B)(query: Query) =
+  def apply[A, B <: Model[A]](model: B)(query: Query): Conditional[A, B] =
     new Conditional[A, B](model)(query)

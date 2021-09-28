@@ -16,22 +16,15 @@ final class QueryBuilder[A, B <: Model[A]](model: B)(using
 ):
   val table = meta.table
 
-  def select: Where[A, B] = Select(model)(
-    Query(Commands.select, table, List[Argument]())
-  ).select
+  def select: Where[A, B] & Joinable[A, B] = Where(model)(
+    Query(Commands.select, table, List(Arguments.where))
+  )
 
   type BiRelation[B] = Relation[A, B] | Relation[B, A]
 
-  def join[C: ModelMeta: BiRelation](
-      toJoin: Model[C]
-  ): Select[A, B] =
-    Select(model)(
-      Query(Commands.select, table, List[Argument](SqlOperations.joinOp[A, C]))
-    )
-
-  def delete: Where[A, B] = Select(model)(
+  def delete: Where[A, B] = Where(model)(
     Query(Commands.delete, table, List[Argument]())
-  ).select
+  )
 
   def insert: Insert[A] =
     Insert(Query(Commands.insert, table, List[Argument]()))

@@ -24,7 +24,7 @@ case class Photo(name: String, photographer: String)
 
 object Photo extends Model[Photo]("photo"):
   val name         = column[String]("name")
-  val photographer = column[String]("photographer")
+  val photographer = column[String]("photographer_name")
 
   object Meta:
     given ModelMeta[Photo] = deriveMeta(name, photographer)
@@ -52,10 +52,10 @@ object Main extends IOApp {
 
     val del = QueryBuilder(
       Person
-    ) select * construct
+    ) select (_.age > 20) join Photo select (_.name like "%Bob") construct
 
     for
-      aa <- del.update.run.transact(xa)
+      aa <- del.query[(Person, Photo)].to[List].transact(xa)
       _  <- IO.println(aa)
     yield ExitCode.Success
 

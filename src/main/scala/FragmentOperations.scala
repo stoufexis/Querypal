@@ -6,6 +6,7 @@ import doobie.syntax.SqlInterpolator.SingleFragment.fromFragment
 import scala.annotation.targetName
 import doobie.Update0
 import doobie.util.fragment.Fragment
+import FragmentOperations.Completable
 
 object FragmentOperations:
   opaque type Command = String
@@ -17,6 +18,7 @@ object FragmentOperations:
   opaque type EqualsCondition <: Condition  = String
   opaque type SetArgument <: Argument       = String
   opaque type InsertArgument <: Argument    = String
+  opaque type JoinArgument <: Argument      = String
 
   /** Operators used in the query-building pipeline. They enable type checking
     * in the query construction and SQL-like syntax
@@ -87,15 +89,18 @@ object FragmentOperations:
     def joinOp[A, B](using
         relation: Relation[A, B] | Relation[B, A],
         toMeta: ModelMeta[B]
-    ): Argument =
-      s"inner join " + toMeta.table.name + s"on " + relation.joinCondition
+    ): JoinArgument =
+      s" inner join " + toMeta.table.name + s" on " + relation.joinCondition
 
     def complete(query: Query): Argument =
       query.arguments.foldStrings
 
     def construct(query: Query): Fragment =
       Update0(
-        (List(query.command, query.table.name) ++ query.arguments).foldStrings,
+        (List(
+          query.command,
+          query.table.name
+        ) ++ query.joins ++ query.arguments).foldStrings,
         None
       ).toFragment
 
@@ -107,5 +112,16 @@ object FragmentOperations:
     def complete: Argument
 
     def construct: Fragment
+
+  trait Joinable[A, B <: Model[A]]:
+    type BiRelation[B] = Relation[A, B] | Relation[B, A]
+
+    def join[C: ModelMeta: BiRelation, D <: Model[C]](
+        toJoin: D
+    ): JoinedSelect[C, D]
+
+  trait JoinableCompletable[A, B <: Model[A]]
+      extends Joinable[A, B],
+        Completable
 
   val * : "* " = "* "

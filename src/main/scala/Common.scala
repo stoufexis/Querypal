@@ -29,7 +29,12 @@ object Common:
 
   /** The query in its preconstructed form
     */
-  case class Query(command: Command, table: Table, arguments: List[Argument])
+  case class Query(
+      command: Command,
+      table: Table,
+      arguments: List[Argument],
+      joins: List[JoinArgument] = List()
+  )
 
   /** A field of A modeling a value member of type B
     */
@@ -48,4 +53,4 @@ object Common:
       toMeta: ModelMeta[B]
   ):
     val joinCondition: String =
-      fromMeta.table.name + s"." + from.name ++ s"=" + toMeta.table.name ++ s"." + toMeta.primaryKeyName
+      fromMeta.table.name + s"." + from.name ++ s" = " + toMeta.table.name ++ s"." + toMeta.primaryKeyName
