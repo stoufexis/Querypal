@@ -13,7 +13,7 @@ import FragmentOperations.Completable
   */
 
 final class Insert[A](query: Query)(using meta: ModelMeta[A])
-    extends (A => Completable):
+    extends (A => Completable) { self =>
   def apply(entity: A): Completable =
     val foldedFields =
       SqlOperations.commaSeparatedParened(
@@ -25,12 +25,14 @@ final class Insert[A](query: Query)(using meta: ModelMeta[A])
         meta.map(entity)._2.toList
       )
 
-    new Completable(
-      query.copy(arguments =
-        query.arguments ++ List(foldedFields, Arguments.values, foldedValues)
-      )
-    ) {}
+    new Completable {
+      private val query = self.query
 
+      def complete: Argument = SqlOperations.complete(query)
+
+      def construct: Fragment = SqlOperations.construct(query)
+    }
+}
 object Insert:
   def apply[A: ModelMeta](query: Query) =
     new Insert(query)

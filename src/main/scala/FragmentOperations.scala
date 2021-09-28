@@ -50,19 +50,6 @@ object FragmentOperations:
   /** Helped methods that abstract the details of the sql syntax from the main
     * pipeline
     */
-  object SqlOperations:
-    def commaSeparatedParened(content: List[String]): Argument =
-      s"(" |+| content
-        .drop(1)
-        .fold(content.head)((x, y) =>
-          x ++ (GeneralOperators.comma ++ y)
-        ) ++ GeneralOperators.rightParen
-
-    def joinOp[A, B](using
-        relation: Relation[A, B] | Relation[B, A],
-        toMeta: ModelMeta[B]
-    ): Argument =
-      s"inner join " + toMeta.table.name + s"on " + relation.joinCondition
 
   object GeneralOperators:
     val leftParen: Argument  = s"( "
@@ -88,18 +75,37 @@ object FragmentOperations:
 
   /** A trait that enables any part of the pipeline to become a terminal step
     */
-  trait Completable(query: Query):
-    def complete: Argument =
+
+  object SqlOperations:
+    def commaSeparatedParened(content: List[String]): Argument =
+      s"(" |+| content
+        .drop(1)
+        .fold(content.head)((x, y) =>
+          x ++ (GeneralOperators.comma ++ y)
+        ) ++ GeneralOperators.rightParen
+
+    def joinOp[A, B](using
+        relation: Relation[A, B] | Relation[B, A],
+        toMeta: ModelMeta[B]
+    ): Argument =
+      s"inner join " + toMeta.table.name + s"on " + relation.joinCondition
+
+    def complete(query: Query): Argument =
       query.arguments.foldStrings
 
-    def construct: Fragment =
+    def construct(query: Query): Fragment =
       Update0(
         (List(query.command, query.table.name) ++ query.arguments).foldStrings,
         None
       ).toFragment
 
     extension (content: List[String])
-      def foldStrings =
+      private def foldStrings =
         content.fold(Monoid[String].empty)(_ |+| _)
+
+  trait Completable:
+    def complete: Argument
+
+    def construct: Fragment
 
   val * : "* " = "* "

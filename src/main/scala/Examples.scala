@@ -52,7 +52,7 @@ object Main extends IOApp {
 
     val del = QueryBuilder(
       Person
-    ) delete (_.name like "Jack_%") construct
+    ) select * construct
 
     for
       aa <- del.update.run.transact(xa)

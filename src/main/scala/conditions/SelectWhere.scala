@@ -10,9 +10,15 @@ import FragmentOperations.Arguments
   */
 
 final class Where[A, B <: Model[A]](model: B)(query: Query)
-    extends Completable(query):
+    extends Completable { self =>
 
-  def apply(all: "* "): Completable = new Completable(query) {}
+  def apply(all: "* "): Completable = new Completable {
+    private val query = self.query
+
+    def complete: Argument = SqlOperations.complete(query)
+
+    def construct: Fragment = SqlOperations.construct(query)
+  }
 
   def apply(f: B => Condition): Conditional[A, B] & Completable =
     Conditional(model)(
@@ -21,6 +27,10 @@ final class Where[A, B <: Model[A]](model: B)(query: Query)
       )
     )
 
+  def complete: Argument = SqlOperations.complete(query)
+
+  def construct: Fragment = SqlOperations.construct(query)
+}
 final class Select[A, B <: Model[A]](model: B)(query: Query) {
   def select: Where[A, B] = Where(model)(query)
 }

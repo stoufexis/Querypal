@@ -10,7 +10,7 @@ import FragmentOperations._
   */
 
 final class Conditional[A, B <: Model[A]](model: B)(query: Query)
-    extends Completable(query):
+    extends Completable:
 
   def and(f: B => Condition) =
     Conditional(model)(
@@ -40,6 +40,10 @@ final class Conditional[A, B <: Model[A]](model: B)(query: Query)
           :+ GeneralOperators.rightParen
       )
     )
+
+  def complete: Argument = SqlOperations.complete(query)
+
+  def construct: Fragment = SqlOperations.construct(query)
 
 object Conditional:
   def apply[A, B <: Model[A]](model: B)(query: Query) =
