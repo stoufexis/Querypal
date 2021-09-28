@@ -62,12 +62,12 @@ object Main extends IOApp {
   def run(args: List[String]): IO[ExitCode] =
     implicit val han = LogHandler.jdkLogHandler
 
-    val del = QueryBuilder(Person) select (_.age > 20) join
+    val multiJoin = QueryBuilder(Person) select (_.age > 20) join
       Photo select (_.name like "%Bob") join Pet select (_.name like "G%") construct
 
     for
       // aa <- del.query[(Person, Photo)].to[List].transact(xa)
-      _ <- IO.println(del)
+      _ <- IO.println(multiJoin)
     yield ExitCode.Success
 
 }
