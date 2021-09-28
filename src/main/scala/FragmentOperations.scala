@@ -118,10 +118,21 @@ object FragmentOperations:
 
     def join[C: ModelMeta: BiRelation, D <: Model[C]](
         toJoin: D
-    ): JoinedSelect[C, D]
+    ): JoinedSelect[A, C, D]
+
+  trait JoinedJoinable[A, B, C <: Model[B]]:
+    type BiRelation[B] = Relation[A, B] | Relation[B, A]
+
+    def join[C: ModelMeta: BiRelation, D <: Model[C]](
+        toJoin: D
+    ): JoinedSelect[A, C, D]
 
   trait JoinableCompletable[A, B <: Model[A]]
       extends Joinable[A, B],
+        Completable
+
+  trait JoinedJoinableCompletable[A, B, C <: Model[B]]
+      extends JoinedJoinable[A, B, C],
         Completable
 
   val * : "* " = "* "

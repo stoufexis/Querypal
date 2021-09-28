@@ -20,13 +20,23 @@ trait Where[A, B <: Model[A]] extends Completable {
   def construct: Fragment
 }
 
+trait JoinedWhere[A, B, C <: Model[B]] extends Completable {
+  def apply(all: "* "): JoinedJoinable[A, B, C] & Completable
+
+  def apply(f: C => Condition): JoinedConditional[A, B, C] & Completable
+
+  def complete: Argument
+
+  def construct: Fragment
+}
+
 final class WhereImpl[A, B <: Model[A]](model: B)(query: Query)
     extends Where[A, B],
       Joinable[A, B] { self =>
 
   def join[C: ModelMeta: BiRelation, D <: Model[C]](
       toJoin: D
-  ): JoinedSelect[C, D] =
+  ): JoinedSelect[A, C, D] =
     JoinedSelect(toJoin)(
       query.copy(joins = query.joins :+ SqlOperations.joinOp[A, C])
     )
@@ -37,7 +47,7 @@ final class WhereImpl[A, B <: Model[A]](model: B)(query: Query)
 
       def join[C: ModelMeta: BiRelation, D <: Model[C]](
           toJoin: D
-      ): JoinedSelect[C, D] =
+      ): JoinedSelect[A, C, D] =
         JoinedSelect(toJoin)(
           query.copy(joins = query.joins :+ SqlOperations.joinOp[A, C])
         )
@@ -56,19 +66,64 @@ final class WhereImpl[A, B <: Model[A]](model: B)(query: Query)
 
   def construct: Fragment = SqlOperations.construct(query)
 }
+
+final class JoinedWhereImpl[A, B, C <: Model[B]](model: C)(query: Query)
+    extends JoinedWhere[A, B, C],
+      JoinedJoinable[A, B, C] { self =>
+
+  def join[C: ModelMeta: BiRelation, D <: Model[C]](
+      toJoin: D
+  ): JoinedSelect[A, C, D] =
+    JoinedSelect(toJoin)(
+      query.copy(joins = query.joins :+ SqlOperations.joinOp[A, C])
+    )
+
+  def apply(all: "* "): JoinedJoinable[A, B, C] & Completable =
+    new JoinedJoinableCompletable[A, B, C] {
+      private val query = self.query
+
+      def join[C: ModelMeta: BiRelation, D <: Model[C]](
+          toJoin: D
+      ): JoinedSelect[A, C, D] =
+        JoinedSelect(toJoin)(
+          query.copy(joins = query.joins :+ SqlOperations.joinOp[A, C])
+        )
+
+      def complete: Argument = SqlOperations.complete(query)
+
+      def construct: Fragment = SqlOperations.construct(query)
+    }
+
+  def apply(f: C => Condition): JoinedConditional[A, B, C] & Completable =
+    JoinedConditional(model)(
+      query.copy(arguments = query.arguments :+ f(model))
+    )
+
+  def complete: Argument = SqlOperations.complete(query)
+
+  def construct: Fragment = SqlOperations.construct(query)
+}
+
 final class Select[A, B <: Model[A]](model: B)(query: Query) {
   def select: Where[A, B] & Joinable[A, B] = Where(model)(query)
 }
 
-final class JoinedSelect[A, B <: Model[A]](model: B)(query: Query) {
-  def select: Where[A, B] & Joinable[A, B] = Where(model)(
-    query.copy(arguments = query.arguments :+ ConditionOperators.and)
-  )
+final class JoinedSelect[A, B, C <: Model[B]](model: C)(query: Query) {
+  def select: JoinedWhere[A, B, C] & JoinedJoinable[A, B, C] =
+    JoinedWhere(model)(
+      query.copy(arguments = query.arguments :+ ConditionOperators.and)
+    )
 }
 
 object Where:
   def apply[A, B <: Model[A]](model: B)(query: Query): WhereImpl[A, B] =
     new WhereImpl[A, B](model)(query)
+
+object JoinedWhere:
+  def apply[A, B, C <: Model[B]](model: C)(
+      query: Query
+  ): JoinedWhereImpl[A, B, C] =
+    new JoinedWhereImpl[A, B, C](model)(query)
 
 object Select:
   def apply[A, B <: Model[A]](model: B)(query: Query) =

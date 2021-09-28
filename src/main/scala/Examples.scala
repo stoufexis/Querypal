@@ -39,10 +39,22 @@ object Person extends Model[Person]("person"):
   object Meta:
     given ModelMeta[Person] = deriveMeta(name, age, nickname)
 
+case class Pet(name: String, owner: String)
+
+object Pet extends Model[Pet]("pet"):
+  val name  = column[String]("name")
+  val owner = column[Int]("owner_name")
+
+  object Meta:
+    given ModelMeta[Pet] = deriveMeta(name, owner)
+
 import Photo.Meta.{given, *}
 import Person.Meta.{given, *}
+import Pet.Meta.{given, *}
 
 given Relation[Photo, Person](Photo.photographer)
+
+given Relation[Pet, Person](Pet.owner)
 
 object Main extends IOApp {
   import FragmentOperations.{given, *}
@@ -50,13 +62,12 @@ object Main extends IOApp {
   def run(args: List[String]): IO[ExitCode] =
     implicit val han = LogHandler.jdkLogHandler
 
-    val del = QueryBuilder(
-      Person
-    ) select (_.age > 20) join Photo select (_.name like "%Bob") construct
+    val del = QueryBuilder(Person) select (_.age > 20) join
+      Photo select (_.name like "%Bob") join Pet select (_.name like "G%") construct
 
     for
-      aa <- del.query[(Person, Photo)].to[List].transact(xa)
-      _  <- IO.println(aa)
+      // aa <- del.query[(Person, Photo)].to[List].transact(xa)
+      _ <- IO.println(del)
     yield ExitCode.Success
 
 }
