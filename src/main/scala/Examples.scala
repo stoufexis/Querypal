@@ -78,13 +78,16 @@ object Main extends IOApp {
 }
 
 object CreateTables extends IOApp {
-  import InitTablesOperations._
+  import InitTables._
 
   implicit def semigroup[F[_]: Apply, A: Semigroup]: Semigroup[F[A]] =
     Apply.semigroup[F, A]
 
   def run(args: List[String]): IO[ExitCode] =
     implicit val han = LogHandler.jdkLogHandler
+
+    given [F[_]: Apply, A: Semigroup]: Semigroup[F[A]] =
+      Apply.semigroup[F, A]
 
     for _ <- (tableGen[Photo] |+| relationGen[Photo, Person]).transact(xa)
     yield ExitCode.Success
