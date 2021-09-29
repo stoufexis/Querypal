@@ -199,7 +199,7 @@ Now we can join Photo and Pet to Person while selecting from them
 //after joining with photo, you are selecting from photo.
 //after joining with pet, you are selecting from pet
 val multiJoin = QueryBuilder(Person) select (_.age > 20) join
-      Photo select (_.name like "%Bob") join Pet select (_.name like "G%") construct
+      Photo select (_.name like "A Day in the%") join Pet select (_.name like "G%") construct
 ```
 The above query compiles to
 ```scala
