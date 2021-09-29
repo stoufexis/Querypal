@@ -27,26 +27,26 @@ object FragmentOperations:
     extension [B](x: Field[B, A])(using meta: ModelMeta[B])
       def ===(y: A): EqualsCondition = y match
         case z: Int =>
-          s"${meta.table.name}" ++ s"." ++ s"${x.name} = ${(z: Int)} "
+          s"${meta.table.name}" ++ s"." ++ s"${x.toString} = ${(z: Int)} "
         case z: String =>
-          s"${meta.table.name}" ++ s"." ++ s"${x.name} = '${(z: String)}' "
+          s"${meta.table.name}" ++ s"." ++ s"${x.toString} = '${(z: String)}' "
 
       def set(y: A): SetArgument = y match
-        case z: Int    => s"${x.name} = ${z: Int} "
-        case z: String => s"${x.name} = '${z: String}' "
+        case z: Int    => s"${x.toString} = ${z: Int} "
+        case z: String => s"${x.toString} = '${z: String}' "
 
   given FieldOps[Int] with
     extension [B](x: Field[B, Int])(using meta: ModelMeta[B])
       def >(y: Int): Condition =
-        s"${meta.table.name}" ++ s"." ++ s"${x.name} > $y "
+        s"${meta.table.name}" ++ s"." ++ s"${x.toString} > $y "
 
       def <(y: Int): Condition =
-        s"${meta.table.name}" ++ s"." ++ s"${x.name} < $y "
+        s"${meta.table.name}" ++ s"." ++ s"${x.toString} < $y "
 
   given FieldOps[String] with {
     extension [B](x: Field[B, String])(using meta: ModelMeta[B])
       def like(y: String): Condition =
-        meta.table.name ++ s".${x.name} like '${y}' "
+        meta.table.name ++ s".${x.toString} like '${y}' "
   }
 
   /** Helped methods that abstract the details of the sql syntax from the main

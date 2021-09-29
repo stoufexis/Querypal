@@ -8,10 +8,13 @@ import cats.effect.kernel.Resource.ExitCase
 import cats.effect.ExitCode
 import scala.language.postfixOps
 import doobie.util.update.Update0
+import cats.implicits._
 
 import doobie.util.log.LogHandler
 import doobie.util.update
 import DeriveModelMeta.deriveModelMeta
+import cats.Apply
+import cats.kernel.Semigroup
 
 val xa = Transactor.fromDriverManager[IO](
   "org.postgresql.Driver",                     // driver classname
@@ -62,12 +65,28 @@ object Main extends IOApp {
   def run(args: List[String]): IO[ExitCode] =
     implicit val han = LogHandler.jdkLogHandler
 
-    val multiJoin = QueryBuilder(Person) select (_.age > 20) join
-      Photo select (_.name like "%Bob") join Pet select (_.name like "G%") construct
+    val insertPhoto = QueryBuilder(Photo) insert Photo(
+      "Portrait of Dennis The Menace",
+      "Dennis"
+    ) construct
 
     for
-      // aa <- del.query[(Person, Photo)].to[List].transact(xa)
-      _ <- IO.println(multiJoin)
+      aa <- insertPhoto.update.run.transact(xa)
+      _  <- IO.println(insertPhoto)
+    yield ExitCode.Success
+
+}
+
+object CreateTables extends IOApp {
+  import InitTablesOperations._
+
+  implicit def semigroup[F[_]: Apply, A: Semigroup]: Semigroup[F[A]] =
+    Apply.semigroup[F, A]
+
+  def run(args: List[String]): IO[ExitCode] =
+    implicit val han = LogHandler.jdkLogHandler
+
+    for _ <- (tableGen[Photo] |+| relationGen[Photo, Person]).transact(xa)
     yield ExitCode.Success
 
 }

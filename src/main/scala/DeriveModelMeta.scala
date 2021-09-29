@@ -8,16 +8,16 @@ import FragmentOperations._
   */
 object DeriveModelMeta:
 
-  trait ToString[A] {
-    def ToString(a: A): String
+  trait ToDoobieString[A] {
+    def toDoobieString(a: A): String
   }
 
-  given intToString: ToString[Int] with {
-    def ToString(a: Int): String = s"${a}"
+  given ToDoobieString[Int] with {
+    def toDoobieString(a: Int): String = s"${a}"
   }
 
-  given stringToString: ToString[String] with {
-    def ToString(a: String): String = s"'${a}'"
+  given ToDoobieString[String] with {
+    def toDoobieString(a: String): String = s"'${a}'"
   }
 
   inline def getElemLabels[A <: Tuple]: List[String] =
@@ -32,16 +32,16 @@ object DeriveModelMeta:
   inline def getElemLabelsHelper[A](using m: Mirror.Of[A]) =
     getElemLabels[m.MirroredElemLabels]
 
-  inline def getTypeclassInstances[A <: Tuple]: List[ToString[Any]] =
+  inline def getTypeclassInstances[A <: Tuple]: List[ToDoobieString[Any]] =
     inline erasedValue[A] match {
       case _: EmptyTuple => Nil
       case _: (head *: tail) =>
-        val headTypeClass = summonInline[ToString[head]]
+        val headTypeClass = summonInline[ToDoobieString[head]]
 
         val tailTypeClasses = getTypeclassInstances[tail]
 
         headTypeClass
-          .asInstanceOf[ToString[Any]] :: getTypeclassInstances[tail]
+          .asInstanceOf[ToDoobieString[Any]] :: getTypeclassInstances[tail]
     }
 
   inline def summonInstancesHelper[A](using m: Mirror.Of[A]) =
@@ -49,19 +49,36 @@ object DeriveModelMeta:
 
   inline def deriveModelMeta[A](using
       m: Mirror.ProductOf[A]
-  )(tableName: String)(fields: Seq[String]) =
+  )(tableName: String)(fields: Seq[Field[?, ?]]) =
     new ModelMeta[A] {
-      val table          = Table(tableName)
-      val primaryKeyName = getElemLabels[m.MirroredElemLabels](0)
+      val table            = Table(tableName)
+      val primaryKeyName   = getElemLabels[m.MirroredElemLabels](0)
+      val typeDescriptions = fields.map(_.toTypeDescription)
 
-      def map(a: A): (Iterator[String], Iterator[String]) = {
+      def map(a: A): (Seq[String], Seq[String]) = {
         val elemInstances = getTypeclassInstances[m.MirroredElemTypes]
-        val elems         = a.asInstanceOf[Product].productIterator
+        val elems         = a.asInstanceOf[Product].productIterator.toSeq
 
         val elemStrings = elems.zip(fields).zip(elemInstances).map {
           case ((elem, label), instance) =>
-            (label, instance.ToString(elem))
+            (label, instance.toDoobieString(elem))
         }
-        (elemStrings.map(_._1), elemStrings.map(_._2))
+        (elemStrings.map(_._1.toString), elemStrings.map(_._2))
       }
     }
+
+//     create table photo
+// (
+//     name              varchar not null
+//         constraint photo_pk
+//             primary key,
+//     photographer_name varchar not null
+//         constraint photographer__fk
+//             references person
+// );
+
+// alter table photo
+//     owner to postgres;
+
+// create unique index photo_name_uindex
+//     on photo (name);
