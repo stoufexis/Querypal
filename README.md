@@ -203,11 +203,31 @@ sql"select * from person inner join photo on photo.photographer_name = person.na
 ```
 *Note: Querypal uses inner joins exclusively*
 
-### As a result
-Combining all these features you get a very  intuitive, easy to use tool for constructing complex, and composable quries through a functional pipeline.
+### Automatic Table Creation
+Having modeled our entities, we can easily derive table creation scripts for them and automatically set up our database stracture. 
 
-![complex-query-demo](https://user-images.githubusercontent.com/61254766/134810240-e4a9a322-3277-41c1-9962-fdfeb9affb36.gif)
+Lets create a table for our Photo model.
+```scala
+//we need an semigroup to compose our ConnectionIOs returned by tableGen and
+//relationGen to run them as one program
+given [F[_]: Apply, A: Semigroup]: Semigroup[F[A]] = Apply.semigroup[F, A]
 
+for _ <- (tableGen[Photo] |+| relationGen[Photo, Person]).transact(xa)
+yield ExitCode.Success
+```
+Firstly, `tableGen[A]` creates our table, its primary key constraint and an index on that primary key. Then, `relationGen[A]` adds the foreign key constraint of `photographer_name` referencing the primary key of `person`.
+
+Given our setup, this snippet creates the following table:
+```sql
+create table photo
+(
+    name              varchar not null constraint photo_pk primary key,
+    photographer_name varchar not null constraint photo_photographer_name_fkey 
+		references person
+);
+
+create unique index photo_name_uindex on photo (name);
+``` 
 
 ### Snippets 
 Below are provided a few code snippets using out above set up to demonstrate querypals features.
