@@ -182,6 +182,8 @@ Every Join operation initiates a select operation for the joined model. This mea
 
 To demonstrate, lets create a third enity/model
 ```scala
+case class Pet(name: String, owner: String)
+
 object Pet extends Model[Pet]("pet"):
   val name  = column[String]("name")
   val owner = column[Int]("owner_name")
