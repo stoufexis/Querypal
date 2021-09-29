@@ -80,9 +80,6 @@ object Main extends IOApp {
 object CreateTables extends IOApp {
   import InitTables._
 
-  implicit def semigroup[F[_]: Apply, A: Semigroup]: Semigroup[F[A]] =
-    Apply.semigroup[F, A]
-
   def run(args: List[String]): IO[ExitCode] =
     implicit val han = LogHandler.jdkLogHandler
 
