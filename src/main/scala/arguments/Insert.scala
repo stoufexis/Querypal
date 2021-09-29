@@ -26,7 +26,9 @@ final class Insert[A](query: Query)(using meta: ModelMeta[A])
       )
 
     new Completable {
-      private val query = self.query
+      private val query = self.query.copy(arguments =
+        self.query.arguments :+ foldedFields :+ Arguments.values :+ foldedValues
+      )
 
       def complete: Argument = SqlOperations.complete(query)
 
