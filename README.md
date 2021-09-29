@@ -115,7 +115,7 @@ sql"insert into person(name, age ,nickname)  values ('John', 34, 'The kid')"
 ```
 
 ### Autocompletes:
-One of the biggest conveniences querypal that query pal provides is autocompletes. On every step you can get suggestions for your next move.
+One of the biggest conveniences that querypal provides is helpful autocompletes. On every step you can get suggestions for your next move.
 
 *simple autocomplete example:*
 
