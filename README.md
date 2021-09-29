@@ -176,6 +176,8 @@ Querypals relations are expressed on the type level. Thus, it lets you know when
 
 ![demo_join_typelevel](https://user-images.githubusercontent.com/61254766/134810907-e5452b08-e8cc-475b-b9a4-80439b87a685.gif)
 
+### Unlimited Joins
+
 Every Join operation initiates a select operation for the joined model. This means you can chain an unlimited amount of joins and select from the joined entities
 
 To demonstrate, lets create a third enity/model
