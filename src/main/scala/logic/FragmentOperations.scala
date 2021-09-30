@@ -39,10 +39,10 @@ object FragmentOperations:
   given FieldOps[Int] with
     extension [B](x: Column[B, Int])(using meta: ModelMeta[B])
       def >(y: Int): Condition =
-        s"${meta.table.name}" ++ s"." ++ s"${x.name} > $y "
+        s"${meta.table.name}" ++ s"." + s"${x.name} > $y "
 
       def <(y: Int): Condition =
-        s"${meta.table.name}" ++ s"." ++ s"${x.name} < $y "
+        s"${meta.table.name}" ++ s"." + s"${x.name} < $y "
 
   given FieldOps[String] with
     extension [B](x: Column[B, String])(using meta: ModelMeta[B])

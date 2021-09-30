@@ -23,9 +23,9 @@ object Model:
     * inference in other parts of the pipeline and some helpful methods to
     * construct the model
     */
-  trait Model[A](val tableName: String):
-    protected inline def deriveMeta(fields: Column[?, ?]*)(using
-        m: Mirror.ProductOf[A]
+  trait Model[A]:
+    protected inline def deriveMeta(tableName: String, fields: Column[?, ?]*)(
+        using m: Mirror.ProductOf[A]
     ) = deriveModelMeta[m.MirroredMonoType](tableName)(fields)
 
     protected def column[B: ToTypeDescription](name: String): Column[A, B] =

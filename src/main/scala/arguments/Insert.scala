@@ -22,14 +22,13 @@ final class Insert[A](query: Query)(using meta: ModelMeta[A])
       SqlOperations.commaSeparatedParened(
         meta.map(entity)._1.toList
       )
-
     val foldedValues =
       SqlOperations.commaSeparatedParened(
         meta.map(entity)._2.toList
       )
 
     new Completable {
-      private val query = self.query.copy(arguments =
+      val query = self.query.copy(arguments =
         self.query.arguments :+ foldedFields :+ Arguments.values :+ foldedValues
       )
 

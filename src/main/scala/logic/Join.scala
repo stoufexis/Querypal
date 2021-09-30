@@ -20,8 +20,10 @@ object Join:
   def joinOp[A, B](using
       relation: Relation[A, B] | Relation[B, A],
       toMeta: ModelMeta[B]
-  ): Argument =
-    Arguments.innerJoin |+| toMeta.table.name |+| Arguments.on |+| relation.joinCondition
+  ): Argument = Arguments.innerJoin
+    |+| toMeta.table.name
+    |+| Arguments.on
+    |+| relation.joinCondition
 
   type BiRelation[A, B] = Relation[A, B] | Relation[B, A]
 

@@ -27,8 +27,6 @@ final class QueryBuilder[A, B <: Model[A]](model: B)(using
     Query(Commands.select, table)
   )
 
-  type BiRelation[B] = Relation[A, B] | Relation[B, A]
-
   def delete: Where[A, B] = new WhereImpl[A, B](model)(
     Query(Commands.delete, table, List[Argument]())
   )
