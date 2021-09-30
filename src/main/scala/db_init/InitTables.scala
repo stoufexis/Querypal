@@ -1,4 +1,6 @@
-import Common.ModelMeta
+package db_init
+
+import logic.Common.ModelMeta
 import doobie.util.fragment.Fragment
 import doobie.util.update.Update0
 import cats.Apply
@@ -6,7 +8,7 @@ import cats.kernel.Monoid
 import cats.kernel.Semigroup
 import cats.implicits._
 import doobie.ConnectionIO
-import Common.Relation
+import logic.Common.Relation
 
 object InitTables:
 

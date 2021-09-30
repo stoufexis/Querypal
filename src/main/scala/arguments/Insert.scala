@@ -1,5 +1,7 @@
-import FragmentOperations._
-import Common._
+package arguments
+
+import logic.FragmentOperations._
+import logic.Common._
 
 import doobie.implicits._
 import cats.Monoid
@@ -7,7 +9,7 @@ import cats.implicits._
 import doobie.util.fragment.Fragment
 import scala.deriving.Mirror
 import scala.compiletime.{constValue, erasedValue, summonInline}
-import FragmentOperations.Completable
+import logic.FragmentOperations.Completable
 
 /** Insert receives an instance of A, and maps it to an insert values statement
   */

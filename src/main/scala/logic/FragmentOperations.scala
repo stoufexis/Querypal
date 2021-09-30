@@ -1,12 +1,15 @@
+package logic
+
 import doobie.implicits._
-import Common._
+import logic.Common._
 import cats.kernel.Monoid
 import cats.implicits._
 import doobie.syntax.SqlInterpolator.SingleFragment.fromFragment
 import scala.annotation.targetName
 import doobie.Update0
 import doobie.util.fragment.Fragment
-import FragmentOperations.Completable
+import logic.FragmentOperations.Completable
+import conditions.JoinedSelect
 
 object FragmentOperations:
   opaque type Command = String

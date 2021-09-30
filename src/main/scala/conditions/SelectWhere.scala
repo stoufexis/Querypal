@@ -1,9 +1,11 @@
-import Common._
+package conditions
+
+import logic.Common._
 import doobie.util.fragment.Fragment
 import doobie.implicits._
-import FragmentOperations._
-import FragmentOperations.Arguments
-import FragmentOperations.JoinableCompletable
+import logic.FragmentOperations._
+import logic.FragmentOperations.Arguments
+import logic.FragmentOperations.JoinableCompletable
 
 /** Select and where are intermediary classes. They help preserve the SQL-like
   * syntax of the querypal dsl. A is the entity being queried and B the object

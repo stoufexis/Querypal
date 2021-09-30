@@ -1,7 +1,10 @@
-import Common._
+package conditions
+
+import logic.Common._
 import doobie.util.fragment.Fragment
 import doobie.implicits._
-import FragmentOperations._
+import logic.FragmentOperations._
+import logic.ConditionList
 
 /** Conditional helps you construct the conditions of your query. With A being
   * the entity queried and B being the object containing the modeled fields of

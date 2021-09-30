@@ -1,3 +1,5 @@
+package logic
+
 import doobie.implicits._
 import scala.deriving.Mirror
 import scala.compiletime.{constValue, erasedValue, summonInline}

@@ -1,4 +1,6 @@
-import Common._
+package logic
+
+import logic.Common._
 import doobie.util.transactor.Transactor
 import cats.effect.IO
 import doobie.implicits._
@@ -9,6 +11,8 @@ import cats.effect.ExitCode
 import scala.language.postfixOps
 import doobie.util.update.Update0
 import cats.implicits._
+import db_init._
+import command._
 
 import doobie.util.log.LogHandler
 import doobie.util.update

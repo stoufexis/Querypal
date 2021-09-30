@@ -1,3 +1,5 @@
+package logic
+
 import FragmentOperations._
 import scala.deriving.Mirror
 import Common.ModelMeta

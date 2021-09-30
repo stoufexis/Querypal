@@ -1,3 +1,5 @@
+package logic
+
 import FragmentOperations._
 import FragmentOperations.Argument._
 import FragmentOperations.ConditionOperator

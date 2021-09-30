@@ -1,9 +1,12 @@
+package arguments
+
 import doobie.util.fragment.Fragment
 import doobie.implicits._
-import Common._
+import logic.Common._
 import cats.implicits._
-import FragmentOperations._
-import FragmentOperations.SqlOperations._
+import logic.FragmentOperations._
+import logic.FragmentOperations.SqlOperations._
+import conditions.Where
 
 /** Set lets you construct an update command step by step, providing you with B
   * to get autocompletion and type safe set arguments
