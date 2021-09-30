@@ -29,7 +29,7 @@ import Models.Person.Meta.{given, *}
 import Models.Pet.Meta.{given, *}
 import Models._
 
-object CreateTables {
+object CreateTables extends IOApp {
   import InitTables._
 
   def run(args: List[String]): IO[ExitCode] =
@@ -56,14 +56,15 @@ object Main extends IOApp {
   def run(args: List[String]): IO[ExitCode] =
     implicit val han = LogHandler.jdkLogHandler
 
-    val query = QueryBuilder(
-      Person
-    ) select (_.age > 13) or (_.age < 12) bind (_ and (_.nickname like "%")) join
-      Photo select (_.name like "%Selfie%") join Pet select (_.name like "%%") construct
+    val quer =
+      QueryBuilder(
+        Person
+      ) update (_.age set 13) update (_.nickname set "Reaged") where (_.age > 40) or (_.age < 10) construct
 
     for
-      // aa <- multiJoin.query[(Person, Photo, Pet)].to[List].transact(xa)
-      _ <- IO.println(query)
+      res <- quer.update.run.transact(xa)
+      // _   <- IO.println(quer)
+      _ <- IO.println(res)
     yield ExitCode.Success
 
 }

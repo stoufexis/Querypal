@@ -6,6 +6,7 @@ Querypal is a type-safe querying dsl built on top of **Doobie** and **Cats-effec
 - **Auto-joins**: Quick join between two tables based on their foreign/primary keys 
 - **Type level operations**: Querypal uses type level operations to achieve some of its features.
 - **Object mapping**: Querypal can map a case class to a correct insert query
+- **Semantic Error Messages**: Using semantically aqurate typing, querypal attempts to always guide you when youve done something wrong 
 
 This project is a personal hobby project meant for practice and experimentation and thus is fairly barebones and lacks features that would make it a complete tool for DB interaction (eg The only types currently supported currrently are ``Int`` and ``String``, some sql operations arent supported etc). This can of course change in the future :-).  
 
@@ -58,13 +59,14 @@ object Person extends Model[Person]("person"):
 Then we can derive a given instance of the ModelMeta type class for our Person entity.
 ```scala
 //ModelMeta is a type class that holds meta-information about our Model and useful operations like object mapping. 
-object Person extends Model[Person]("person"):
+object Person extends Model[Person]:
   val name     = column[String]("name")
   val age      = column[Int]("age")
   val nickname = column[String]("nickname")
   
   object Meta:
-    given ModelMeta[Person] = deriveMeta(name, age, nickname)
+    //derive meta takes the table name as a first paremeter and a vararg of field
+    given ModelMeta[Person] = deriveMeta("person",name, age, nickname)
 ```
 
 
@@ -156,12 +158,12 @@ We can see that theres a one to many relationship between ```person``` and ```ph
 
 Lets create our querypal model and derive our metadata
 ```scala
-object Photo extends Model[Photo]("photo"):
+object Photo extends Model[Photo]:
   val name         = column[String]("name")
   val photographer = column[String]("photographer")
 
   object Meta:
-    given ModelMeta[Photo] = deriveMeta(name, photographer)
+    given ModelMeta[Photo] = deriveMeta("photo",name, photographer)
 ```
 Now lets define a relationship between ```person``` and ```photo```
 ```scala
@@ -184,12 +186,12 @@ To demonstrate, lets create a third enity/model
 ```scala
 case class Pet(name: String, owner: String)
 
-object Pet extends Model[Pet]("pet"):
+object Pet extends Model[Pet]:
   val name  = column[String]("name")
   val owner = column[Int]("owner_name")
 
   object Meta:
-    given ModelMeta[Pet] = deriveMeta(name, owner)
+    given ModelMeta[Pet] = deriveMeta("pet",name, owner)
     
 given Relation[Pet, Person](Pet.owner)
 ```
