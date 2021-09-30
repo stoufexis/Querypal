@@ -102,7 +102,15 @@ object InitDB {
         |+| tableGen[Pet]
         |+| relationGen[Photo, Person]
         |+| relationGen[Pet, Person]
-        |+| quer |+| quer1 |+| quer2 |+| quer3 |+| quer4 |+| quer5 |+| quer6 |+| quer7 |+| quer8)
+        |+| quer
+        |+| quer1
+        |+| quer2
+        |+| quer3
+        |+| quer4
+        |+| quer5
+        |+| quer6
+        |+| quer7
+        |+| quer8)
 
     for _ <- genTables.transact(xa)
     yield ExitCode.Success

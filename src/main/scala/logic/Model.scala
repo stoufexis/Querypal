@@ -38,6 +38,6 @@ object Model:
     val table: Table
     val typeDescriptions: Seq[String]
 
-    /** Deconstructs and instance of A so it can be used in queries
+    /** Deconstructs an instance of A so it can be used in insert queries
       */
     def map(a: A): (Seq[String], Seq[String])

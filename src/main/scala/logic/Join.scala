@@ -9,13 +9,12 @@ import FragmentOperations.{SqlOperations, Completable, Argument, Arguments}
 object Join:
   def joinedSelect[A, B: ModelMeta, C <: Model[B]](query: Query, toJoin: C)(
       using Relation[A, B] | Relation[B, A]
-  ): JoinedSelect[A, B, C] =
-    JoinedSelect[A, B, C](toJoin)(
-      query.copy(
-        joins = query.joins :+ joinOp[A, B],
-        conditions = query.conditions.addList
-      )
+  ): JoinedSelect[A, B, C] = JoinedSelect[A, B, C](toJoin)(
+    query.copy(
+      joins = query.joins :+ joinOp[A, B],
+      conditionList = query.conditionList.addList
     )
+  )
 
   def joinOp[A, B](using
       relation: Relation[A, B] | Relation[B, A],

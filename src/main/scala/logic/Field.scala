@@ -3,7 +3,6 @@ package logic
 import Model._
 
 object Field:
-
   /** A field of A modeling a value member of type B
     */
   case class Column[A, B](private val name: String)(using

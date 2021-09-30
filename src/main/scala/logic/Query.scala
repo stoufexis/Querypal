@@ -11,20 +11,18 @@ case class Query(
     command: Command,
     table: Table,
     arguments: List[Argument] = List(),
-    conditions: ConditionList = ConditionList(),
+    conditionList: ConditionList = ConditionList(),
     joins: List[Argument] = List()
 )
 
 object Query:
   extension (query: Query)
-    def complete: Argument =
-      query.conditions.conditions.flatten.foldArgs
+    def complete: Argument = query.conditionList.conditions.flatten.foldArgs
 
-    def construct: Fragment =
-      Update0(
-        (List(query.command, query.table.name)
-          ++ query.joins
-          ++ query.arguments
-          :+ query.conditions.fold).foldArgs.toString,
-        None
-      ).toFragment
+    def construct: Fragment = Update0(
+      (List(query.command, query.table.name)
+        ++ query.joins
+        ++ query.arguments
+        :+ query.conditionList.fold).foldArgs.toString,
+      None
+    ).toFragment

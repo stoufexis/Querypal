@@ -19,9 +19,11 @@ final class Conditional[A, B <: Model[A]](model: B)(query: Query)
     extends Joinable[A, B],
       Completable:
 
-  def join[C: ModelMeta, D <: Model[C]](
+  type ABiRelation[B] = BiRelation[A, B]
+
+  def join[C: ModelMeta: ABiRelation, D <: Model[C]](
       toJoin: D
-  )(using BiRelation[A, C]): JoinedSelect[A, C, D] =
+  ): JoinedSelect[A, C, D] =
     joinedSelect[A, C, D](query, toJoin)
 
   private def nextConditional(query: Query): Conditional[A, B] =
@@ -44,10 +46,11 @@ final class JoinedConditional[A, B, C <: Model[B]](model: C)(query: Query)
     extends JoinedJoinable[A, B, C],
       Completable:
 
-  def join[C: ModelMeta, D <: Model[C]](
+  type ABiRelation[B] = BiRelation[A, B]
+
+  def join[C: ModelMeta: ABiRelation, D <: Model[C]](
       toJoin: D
-  )(using BiRelation[A, C]): JoinedSelect[A, C, D] =
-    joinedSelect[A, C, D](query, toJoin)
+  ): JoinedSelect[A, C, D] = joinedSelect[A, C, D](query, toJoin)
 
   private def nextConditional(query: Query): JoinedConditional[A, B, C] =
     new JoinedConditional[A, B, C](model)(query)
@@ -73,15 +76,17 @@ object ConditionalHelpers:
       f: Conditional[A, B] => Conditional[A, B],
       model: B
   ) =
-    query.copy(conditions =
-      query.conditions
+    query.copy(conditionList =
+      query.conditionList
         .dropRightFromLast(1)
         .addToLast(
           GeneralOperators.leftParen,
           f(
             Conditional(model)(
-              query
-                .copy(conditions = ConditionList(query.conditions.last.last))
+              query = query
+                .copy(conditionList =
+                  ConditionList(query.conditionList.last.last)
+                )
             )
           ).complete,
           GeneralOperators.rightParen
@@ -89,11 +94,11 @@ object ConditionalHelpers:
     )
 
   def orQuery[A, B <: Model[A]](model: B, query: Query, f: B => Condition) =
-    query.copy(conditions =
-      query.conditions.addToLast(ConditionOperators.or, f(model))
+    query.copy(conditionList =
+      query.conditionList.addToLast(ConditionOperators.or, f(model))
     )
 
   def andQuery[A, B <: Model[A]](model: B, query: Query, f: B => Condition) =
-    query.copy(conditions =
-      query.conditions.addToLast(ConditionOperators.and, f(model))
+    query.copy(conditionList =
+      query.conditionList.addToLast(ConditionOperators.and, f(model))
     )

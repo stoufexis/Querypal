@@ -11,30 +11,24 @@ case class ConditionList(
 )
 
 object ConditionList:
-
   def apply(arg: Argument): ConditionList = ConditionList(List(List(arg)))
 
   extension (conditionList: ConditionList)
-    def addToLast(argument: Argument*): ConditionList =
-      ConditionList(
-        conditionList.conditions
-          .dropRight(1) :+ (conditionList.conditions.last ++ argument)
-      )
+    def addToLast(argument: Argument*): ConditionList = ConditionList(
+      conditionList.conditions.dropRight(1)
+        :+ (conditionList.conditions.last ++ argument)
+    )
 
     def addList: ConditionList = ConditionList(
       conditionList.conditions :+ List[Argument]()
     )
 
-    def last: List[Argument] =
-      println(conditionList.conditions)
-      conditionList.conditions.last
+    def last: List[Argument] = conditionList.conditions.last
 
-    def dropRightFromLast(n: Int) =
-      ConditionList(
-        conditionList.conditions.dropRight(
-          1
-        ) :+ (conditionList.conditions.last.dropRight(n))
-      )
+    def dropRightFromLast(n: Int) = ConditionList(
+      conditionList.conditions.dropRight(1)
+        :+ (conditionList.conditions.last.dropRight(n))
+    )
 
     def fold: Argument =
       val conditions = conditionList.conditions
@@ -45,8 +39,7 @@ object ConditionList:
         .filter(_ != Monoid[Argument].empty)
 
       if (conditions.length > 0)
-        FragmentOperations.Arguments.where |+| (conditions
-          .dropRight(1)
-          .foldArgs)
+        FragmentOperations.Arguments.where
+          |+| conditions.dropRight(1).foldArgs
       else
         Monoid[Argument].empty
