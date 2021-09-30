@@ -17,35 +17,41 @@ final class Conditional[A, B <: Model[A]](model: B)(query: Query)
       toJoin: D
   ): JoinedSelect[A, C, D] =
     JoinedSelect(toJoin)(
-      query.copy(joins = query.joins :+ SqlOperations.joinOp[A, C])
+      query.copy(
+        joins = query.joins :+ SqlOperations.joinOp[A, C],
+        conditions = query.conditions.addList
+      )
     )
 
   def and(f: B => Condition) =
     Conditional(model)(
-      query.copy(arguments =
-        query.arguments ++ List(ConditionOperators.and) :+ f(model)
+      query.copy(conditions =
+        query.conditions.addToLast(ConditionOperators.and, f(model))
       )
     )
 
   def or(f: B => Condition) =
     Conditional(model)(
-      query.copy(arguments =
-        query.arguments ++ List(ConditionOperators.or) :+ f(model)
+      query.copy(conditions =
+        query.conditions.addToLast(ConditionOperators.or, f(model))
       )
     )
 
   def bind(f: Conditional[A, B] => Conditional[A, B]) =
     Conditional(model)(
-      query.copy(arguments =
-        query.arguments
-          .dropRight(1)
-          :+ GeneralOperators.leftParen
-          :+ f(
-            Conditional(model)(
-              query.copy(arguments = List(query.arguments.last))
-            )
-          ).complete
-          :+ GeneralOperators.rightParen
+      query.copy(conditions =
+        query.conditions
+          .dropRightFromLast(1)
+          .addToLast(
+            GeneralOperators.leftParen,
+            f(
+              Conditional(model)(
+                query
+                  .copy(conditions = ConditionList(query.conditions.last.last))
+              )
+            ).complete,
+            GeneralOperators.rightParen
+          )
       )
     )
 
@@ -61,20 +67,23 @@ final class JoinedConditional[A, B, C <: Model[B]](model: C)(query: Query)
       toJoin: D
   ): JoinedSelect[A, C, D] =
     JoinedSelect(toJoin)(
-      query.copy(joins = query.joins :+ SqlOperations.joinOp[A, C])
+      query.copy(
+        joins = query.joins :+ SqlOperations.joinOp[A, C],
+        conditions = query.conditions.addList
+      )
     )
 
   def and(f: C => Condition) =
     JoinedConditional(model)(
-      query.copy(arguments =
-        query.arguments ++ List(ConditionOperators.and) :+ f(model)
+      query.copy(conditions =
+        query.conditions.addToLast(ConditionOperators.and, f(model))
       )
     )
 
   def or(f: C => Condition) =
     Conditional(model)(
-      query.copy(arguments =
-        query.arguments ++ List(ConditionOperators.or) :+ f(model)
+      query.copy(conditions =
+        query.conditions.addToLast(ConditionOperators.or, f(model))
       )
     )
 
@@ -82,16 +91,19 @@ final class JoinedConditional[A, B, C <: Model[B]](model: C)(query: Query)
       f: Conditional[B, C] => Conditional[B, C]
   ): JoinedConditional[A, B, C] =
     JoinedConditional(model)(
-      query.copy(arguments =
-        query.arguments
-          .dropRight(1)
-          :+ GeneralOperators.leftParen
-          :+ f(
-            Conditional(model)(
-              query.copy(arguments = List(query.arguments.last))
-            )
-          ).complete
-          :+ GeneralOperators.rightParen
+      query.copy(conditions =
+        query.conditions
+          .dropRightFromLast(1)
+          .addToLast(
+            GeneralOperators.leftParen,
+            f(
+              Conditional(model)(
+                query
+                  .copy(conditions = ConditionList(List(query.conditions.last)))
+              )
+            ).complete,
+            GeneralOperators.rightParen
+          )
       )
     )
 

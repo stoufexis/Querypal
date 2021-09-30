@@ -38,7 +38,10 @@ final class WhereImpl[A, B <: Model[A]](model: B)(query: Query)
       toJoin: D
   ): JoinedSelect[A, C, D] =
     JoinedSelect(toJoin)(
-      query.copy(joins = query.joins :+ SqlOperations.joinOp[A, C])
+      query.copy(
+        joins = query.joins :+ SqlOperations.joinOp[A, C],
+        conditions = query.conditions.addList
+      )
     )
 
   def apply(all: "* "): Joinable[A, B] & Completable =
@@ -49,7 +52,10 @@ final class WhereImpl[A, B <: Model[A]](model: B)(query: Query)
           toJoin: D
       ): JoinedSelect[A, C, D] =
         JoinedSelect(toJoin)(
-          query.copy(joins = query.joins :+ SqlOperations.joinOp[A, C])
+          query.copy(
+            joins = query.joins :+ SqlOperations.joinOp[A, C],
+            conditions = query.conditions.addList
+          )
         )
 
       def complete: Argument = SqlOperations.complete(query)
@@ -59,7 +65,7 @@ final class WhereImpl[A, B <: Model[A]](model: B)(query: Query)
 
   def apply(f: B => Condition): Conditional[A, B] & Completable =
     Conditional(model)(
-      query.copy(arguments = query.arguments :+ f(model))
+      query.copy(conditions = query.conditions.addToLast(f(model)))
     )
 
   def complete: Argument = SqlOperations.complete(query)
@@ -75,18 +81,25 @@ final class JoinedWhereImpl[A, B, C <: Model[B]](model: C)(query: Query)
       toJoin: D
   ): JoinedSelect[A, C, D] =
     JoinedSelect(toJoin)(
-      query.copy(joins = query.joins :+ SqlOperations.joinOp[A, C])
+      query.copy(
+        joins = query.joins :+ SqlOperations.joinOp[A, C],
+        conditions = query.conditions.addList
+      )
     )
 
   def apply(all: "* "): JoinedJoinable[A, B, C] & Completable =
     new JoinedJoinableCompletable[A, B, C] {
-      private val query = self.query
+      private val query =
+        self.query.copy(arguments = self.query.arguments.dropRight(1))
 
       def join[C: ModelMeta: BiRelation, D <: Model[C]](
           toJoin: D
       ): JoinedSelect[A, C, D] =
         JoinedSelect(toJoin)(
-          query.copy(joins = query.joins :+ SqlOperations.joinOp[A, C])
+          query.copy(
+            joins = query.joins :+ SqlOperations.joinOp[A, C],
+            conditions = query.conditions.addList
+          )
         )
 
       def complete: Argument = SqlOperations.complete(query)
@@ -96,7 +109,7 @@ final class JoinedWhereImpl[A, B, C <: Model[B]](model: C)(query: Query)
 
   def apply(f: C => Condition): JoinedConditional[A, B, C] & Completable =
     JoinedConditional(model)(
-      query.copy(arguments = query.arguments :+ f(model))
+      query.copy(conditions = query.conditions.addToLast(f(model)))
     )
 
   def complete: Argument = SqlOperations.complete(query)
@@ -105,14 +118,13 @@ final class JoinedWhereImpl[A, B, C <: Model[B]](model: C)(query: Query)
 }
 
 final class Select[A, B <: Model[A]](model: B)(query: Query) {
-  def select: Where[A, B] & Joinable[A, B] = Where(model)(query)
+  def select: Where[A, B] & Joinable[A, B] =
+    Where(model)(query)
 }
 
 final class JoinedSelect[A, B, C <: Model[B]](model: C)(query: Query) {
   def select: JoinedWhere[A, B, C] & JoinedJoinable[A, B, C] =
-    JoinedWhere(model)(
-      query.copy(arguments = query.arguments :+ ConditionOperators.and)
-    )
+    JoinedWhere(model)(query)
 }
 
 object Where:

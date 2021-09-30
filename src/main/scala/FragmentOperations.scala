@@ -49,6 +49,8 @@ object FragmentOperations:
         meta.table.name ++ s".${x.toString} like '${y}' "
   }
 
+  extension (x: Argument) def ++(y: Argument) = x ++ y
+
   /** Helped methods that abstract the details of the sql syntax from the main
     * pipeline
     */
@@ -59,8 +61,8 @@ object FragmentOperations:
     val comma: Argument      = s", "
 
   object ConditionOperators:
-    val and: ConditionOperator = s"and "
-    val or: ConditionOperator  = s"or "
+    val and: ConditionOperator = s" and "
+    val or: ConditionOperator  = s" or "
 
   object Commands:
     val update: Command = s"update "
@@ -79,6 +81,8 @@ object FragmentOperations:
     */
 
   object SqlOperations:
+    import Argument._
+
     def commaSeparatedParened(content: List[String]): Argument =
       s"(" |+| content
         .drop(1)
@@ -93,20 +97,30 @@ object FragmentOperations:
       s" inner join " + toMeta.table.name + s" on " + relation.joinCondition
 
     def complete(query: Query): Argument =
-      query.arguments.foldStrings
+      query.conditions.conditions.flatten.foldArgs
 
     def construct(query: Query): Fragment =
       Update0(
         (List(
           query.command,
           query.table.name
-        ) ++ query.joins ++ query.arguments).foldStrings,
+        )
+          ++ query.joins
+          ++ (query.arguments)
+          :+ query.conditions.fold).foldArgs,
         None
       ).toFragment
 
-    extension (content: List[String])
-      private def foldStrings =
-        content.fold(Monoid[String].empty)(_ |+| _)
+  object Argument:
+    extension (content: List[Argument])
+      def foldArgs: Argument =
+        content.fold(Monoid[Argument].empty)(_ |+| _)
+
+    given Monoid[Argument] with {
+      def empty = ""
+
+      def combine(x: Argument, y: Argument) = x + y
+    }
 
   trait Completable:
     def complete: Argument

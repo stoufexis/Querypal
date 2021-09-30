@@ -46,7 +46,8 @@ object Common:
   case class Query(
       command: Command,
       table: Table,
-      arguments: List[Argument],
+      arguments: List[Argument] = List(),
+      conditions: ConditionList = ConditionList(),
       joins: List[JoinArgument] = List()
   )
 

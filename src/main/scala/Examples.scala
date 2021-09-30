@@ -32,6 +32,8 @@ object Photo extends Model[Photo]("photo"):
   object Meta:
     given ModelMeta[Photo] = deriveMeta(name, photographer)
 
+given Relation[Photo, Person](Photo.photographer)
+
 case class Person(name: String, age: Int, nickname: String)
 
 object Person extends Model[Person]("person"):
@@ -46,38 +48,18 @@ case class Pet(name: String, owner: String)
 
 object Pet extends Model[Pet]("pet"):
   val name  = column[String]("name")
-  val owner = column[Int]("owner_name")
+  val owner = column[String]("owner_name")
 
   object Meta:
     given ModelMeta[Pet] = deriveMeta(name, owner)
+
+given Relation[Pet, Person](Pet.owner)
 
 import Photo.Meta.{given, *}
 import Person.Meta.{given, *}
 import Pet.Meta.{given, *}
 
-given Relation[Photo, Person](Photo.photographer)
-
-given Relation[Pet, Person](Pet.owner)
-
-object Main extends IOApp {
-  import FragmentOperations.{given, *}
-
-  def run(args: List[String]): IO[ExitCode] =
-    implicit val han = LogHandler.jdkLogHandler
-
-    val insertPhoto = QueryBuilder(Photo) insert Photo(
-      "Portrait of Dennis The Menace",
-      "Dennis"
-    ) construct
-
-    for
-      aa <- insertPhoto.update.run.transact(xa)
-      _  <- IO.println(insertPhoto)
-    yield ExitCode.Success
-
-}
-
-object CreateTables extends IOApp {
+object CreateTables {
   import InitTables._
 
   def run(args: List[String]): IO[ExitCode] =
@@ -86,7 +68,31 @@ object CreateTables extends IOApp {
     given [F[_]: Apply, A: Semigroup]: Semigroup[F[A]] =
       Apply.semigroup[F, A]
 
-    for _ <- (tableGen[Photo] |+| relationGen[Photo, Person]).transact(xa)
+    val genTables = (tableGen[Person] |+| tableGen[Photo] |+| tableGen[Pet]
+      |+| relationGen[Photo, Person] |+| relationGen[Pet, Person])
+
+    for _ <- genTables.transact(xa)
+    yield ExitCode.Success
+
+}
+
+object Main extends IOApp {
+  import FragmentOperations.{given, *}
+
+  given [F[_]: Apply, A: Semigroup]: Semigroup[F[A]] =
+    Apply.semigroup[F, A]
+
+  def run(args: List[String]): IO[ExitCode] =
+    implicit val han = LogHandler.jdkLogHandler
+
+    val query = QueryBuilder(
+      Person
+    ) select (_.age > 13) or (_.age < 12) bind (_ and (_.nickname like "%")) join
+      Photo select (_.name like "%Selfie%") join Pet select (_.name like "%%") construct
+
+    for
+      // aa <- multiJoin.query[(Person, Photo, Pet)].to[List].transact(xa)
+      _ <- IO.println(query)
     yield ExitCode.Success
 
 }

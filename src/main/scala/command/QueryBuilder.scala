@@ -17,7 +17,7 @@ final class QueryBuilder[A, B <: Model[A]](model: B)(using
   val table = meta.table
 
   def select: Where[A, B] & Joinable[A, B] = Where(model)(
-    Query(Commands.select, table, List(Arguments.where))
+    Query(Commands.select, table)
   )
 
   type BiRelation[B] = Relation[A, B] | Relation[B, A]
