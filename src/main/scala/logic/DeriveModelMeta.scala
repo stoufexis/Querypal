@@ -69,19 +69,3 @@ object DeriveModelMeta:
         (elemStrings.map(_._1.toString), elemStrings.map(_._2))
       }
     }
-
-//     create table photo
-// (
-//     name              varchar not null
-//         constraint photo_pk
-//             primary key,
-//     photographer_name varchar not null
-//         constraint photographer__fk
-//             references person
-// );
-
-// alter table photo
-//     owner to postgres;
-
-// create unique index photo_name_uindex
-//     on photo (name);
