@@ -29,7 +29,7 @@ import Models.Person.Meta.{given, *}
 import Models.Pet.Meta.{given, *}
 import Models._
 
-object CreateTables extends IOApp {
+object InitDB {
   import InitTables._
 
   def run(args: List[String]): IO[ExitCode] =
@@ -38,8 +38,71 @@ object CreateTables extends IOApp {
     given [F[_]: Apply, A: Semigroup]: Semigroup[F[A]] =
       Apply.semigroup[F, A]
 
-    val genTables = (tableGen[Person] |+| tableGen[Photo] |+| tableGen[Pet]
-      |+| relationGen[Photo, Person] |+| relationGen[Pet, Person])
+    val quer =
+      (QueryBuilder(Person) insert Person(
+        "Jack",
+        13,
+        "Ugly"
+      ) construct).update.run
+
+    val quer1 =
+      (QueryBuilder(Person) insert Person(
+        "John",
+        23,
+        "Pretty"
+      ) construct).update.run
+
+    val quer2 =
+      (QueryBuilder(Person) insert Person(
+        "Sam",
+        33,
+        "Mayhem"
+      ) construct).update.run
+
+    val quer3 =
+      (QueryBuilder(Person) insert Person(
+        "Baily",
+        43,
+        "Satan"
+      ) construct).update.run
+
+    val quer4 =
+      (QueryBuilder(Photo) insert Photo(
+        "Jack Selfie",
+        "Jack"
+      ) construct).update.run
+
+    val quer5 =
+      (QueryBuilder(Photo) insert Photo(
+        "John Selfie",
+        "John"
+      ) construct).update.run
+
+    val quer6 =
+      (QueryBuilder(Photo) insert Photo(
+        "Johns House",
+        "John"
+      ) construct).update.run
+
+    val quer7 =
+      (QueryBuilder(Pet) insert Pet(
+        "Sammy",
+        "Jack"
+      ) construct).update.run
+
+    val quer8 =
+      (QueryBuilder(Pet) insert Pet(
+        "Satan",
+        "Baily"
+      ) construct).update.run
+
+    val genTables =
+      (tableGen[Person]
+        |+| tableGen[Photo]
+        |+| tableGen[Pet]
+        |+| relationGen[Photo, Person]
+        |+| relationGen[Pet, Person]
+        |+| quer |+| quer1 |+| quer2 |+| quer3 |+| quer4 |+| quer5 |+| quer6 |+| quer7 |+| quer8)
 
     for _ <- genTables.transact(xa)
     yield ExitCode.Success
@@ -56,15 +119,13 @@ object Main extends IOApp {
   def run(args: List[String]): IO[ExitCode] =
     implicit val han = LogHandler.jdkLogHandler
 
-    val quer =
-      QueryBuilder(
-        Person
-      ) update (_.age set 13) update (_.nickname set "Reaged") where (_.age > 40) or (_.age < 10) construct
+    val multiJoin = QueryBuilder(Person) select
+      (_.age > 13) or (_.age < 12) bind (_ and (_.nickname like "%h%")) join
+      Photo select (_.name like "%Selfie%") construct
 
     for
-      res <- quer.update.run.transact(xa)
-      // _   <- IO.println(quer)
-      _ <- IO.println(res)
+      res <- multiJoin.query[(Person, Photo)].to[List].transact(xa)
+      _   <- IO.println(res)
     yield ExitCode.Success
 
 }

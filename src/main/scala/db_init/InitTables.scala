@@ -67,7 +67,7 @@ object InitTables:
       relation: Relation[A, B]
   ): ConnectionIO[Int] = addForeignKey(
     meta.table.nameAsString,
-    relation.fk.name,
+    relation.fk.getName,
     meta2.table.nameAsString,
     meta2.primaryKeyName
   ).update.run
