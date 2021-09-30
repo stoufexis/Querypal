@@ -245,16 +245,7 @@ for
 	_ <- IO.println(res)
 yield  ExitCode.Success
 ```
-*composed insert:*
-```scala
-val  insertPerson1 = (person: Person) => (QueryBuilder(Person) insert person construct).update.run.transact(xa)
 
-for
-	res1 <- insertPerson1(Person("Dennis", 12, "The Menace"))
-	res2 <- insertPerson1(Person("George", 56, "Angry neighbour"))
-	res3 <- insertPerson1(Person("Karen", 48, "Angrier Neighbour"))
-yield  ExitCode.Success
-```
 *basic select:*
 ```scala
 val  selectAll = QueryBuilder(Person) select * construct
@@ -299,4 +290,16 @@ for
 	aa <- query.query[Person].to[List].transact(xa)
 	_ <- IO.println(aa)
 yield  ExitCode.Success
+```
+
+*complex join with intermediary selects*
+```scala
+val multiJoin = QueryBuilder(Person) select
+      (_.age > 13) or (_.age < 12) bind (_ and (_.nickname like "%")) join
+      Photo select (_.name like "%Selfie%") join Pet select (_.name like "%%") construct
+
+for
+  res <- multiJoin.query[(Person, Photo, Pet)].to[List].transact(xa)
+  _   <- IO.println(res)
+yield ExitCode.Success
 ```
