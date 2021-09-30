@@ -24,14 +24,17 @@ final class Conditional[A, B <: Model[A]](model: B)(query: Query)
   )(using BiRelation[A, C]): JoinedSelect[A, C, D] =
     joinedSelect[A, C, D](query, toJoin)
 
-  def and(f: B => Condition) =
-    new Conditional(model)(andQuery(model, query, f))
+  private def nextConditional(query: Query): Conditional[A, B] =
+    new Conditional[A, B](model)(query)
 
-  def or(f: B => Condition) =
-    new Conditional(model)(orQuery(model, query, f))
+  def and(f: B => Condition): Conditional[A, B] =
+    nextConditional(andQuery(model, query, f))
+
+  def or(f: B => Condition): Conditional[A, B] =
+    nextConditional(orQuery(model, query, f))
 
   def bind(f: Conditional[A, B] => Conditional[A, B]): Conditional[A, B] =
-    new Conditional(model)(boundQuery(query, f, model))
+    nextConditional(boundQuery(query, f, model))
 
   def complete: Argument = query.complete
 
@@ -46,16 +49,19 @@ final class JoinedConditional[A, B, C <: Model[B]](model: C)(query: Query)
   )(using BiRelation[A, C]): JoinedSelect[A, C, D] =
     joinedSelect[A, C, D](query, toJoin)
 
-  def and(f: C => Condition) =
-    new JoinedConditional(model)(andQuery(model, query, f))
+  private def nextConditional(query: Query): JoinedConditional[A, B, C] =
+    new JoinedConditional[A, B, C](model)(query)
 
-  def or(f: C => Condition) =
-    new JoinedConditional(model)(orQuery(model, query, f))
+  def and(f: C => Condition): JoinedConditional[A, B, C] =
+    nextConditional(andQuery(model, query, f))
+
+  def or(f: C => Condition): JoinedConditional[A, B, C] =
+    nextConditional(orQuery(model, query, f))
 
   def bind(
       f: Conditional[B, C] => Conditional[B, C]
   ): JoinedConditional[A, B, C] =
-    new JoinedConditional(model)(boundQuery(query, f, model))
+    nextConditional(boundQuery(query, f, model))
 
   def complete: Argument = query.complete
 
