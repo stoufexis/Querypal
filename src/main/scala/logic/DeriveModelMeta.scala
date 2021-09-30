@@ -3,8 +3,9 @@ package logic
 import doobie.implicits._
 import scala.deriving.Mirror
 import scala.compiletime.{constValue, erasedValue, summonInline}
-import Common._
 import FragmentOperations._
+import Field._
+import Model._
 
 /** Automatic derivation of instances of the ModelMeta type class for entity A
   */
@@ -51,7 +52,7 @@ object DeriveModelMeta:
 
   inline def deriveModelMeta[A](using
       m: Mirror.ProductOf[A]
-  )(tableName: String)(fields: Seq[Field[?, ?]]) =
+  )(tableName: String)(fields: Seq[Column[?, ?]]) =
     new ModelMeta[A] {
       val table            = Table(tableName)
       val primaryKeyName   = getElemLabels[m.MirroredElemLabels](0)

@@ -1,6 +1,6 @@
 package db_init
 
-import logic.Common.ModelMeta
+import logic.Model._
 import doobie.util.fragment.Fragment
 import doobie.util.update.Update0
 import cats.Apply
@@ -8,7 +8,7 @@ import cats.kernel.Monoid
 import cats.kernel.Semigroup
 import cats.implicits._
 import doobie.ConnectionIO
-import logic.Common.Relation
+import logic.Relation._
 
 object InitTables:
 
@@ -51,7 +51,7 @@ object InitTables:
     Apply.semigroup[F, A]
 
   def tableGen[A](using meta: ModelMeta[A]): ConnectionIO[Int] =
-    val tableName = meta.table.name
+    val tableName = meta.table.nameAsString
     val genTableSteps = List(
       dropTableFr(tableName),
       createTableFr(tableName, meta.typeDescriptions),
@@ -66,8 +66,8 @@ object InitTables:
       meta2: ModelMeta[B],
       relation: Relation[A, B]
   ): ConnectionIO[Int] = addForeignKey(
-    meta.table.name,
+    meta.table.nameAsString,
     relation.fk.toString,
-    meta2.table.name,
+    meta2.table.nameAsString,
     meta2.primaryKeyName
   ).update.run

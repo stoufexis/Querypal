@@ -1,10 +1,13 @@
 package conditions
 
-import logic.Common._
+import logic.Model._
 import doobie.util.fragment.Fragment
 import doobie.implicits._
 import logic.FragmentOperations._
 import logic.ConditionList
+import logic.Join.{Joinable, joinedSelect, JoinedJoinable, BiRelation}
+import ConditionalHelpers._
+import logic.Query
 
 /** Conditional helps you construct the conditions of your query. With A being
   * the entity queried and B being the object containing the modeled fields of
@@ -16,110 +19,75 @@ final class Conditional[A, B <: Model[A]](model: B)(query: Query)
     extends Joinable[A, B],
       Completable:
 
-  def join[C: ModelMeta: BiRelation, D <: Model[C]](
+  def join[C: ModelMeta, D <: Model[C]](
       toJoin: D
-  ): JoinedSelect[A, C, D] =
-    JoinedSelect(toJoin)(
-      query.copy(
-        joins = query.joins :+ SqlOperations.joinOp[A, C],
-        conditions = query.conditions.addList
-      )
-    )
+  )(using BiRelation[A, C]): JoinedSelect[A, C, D] =
+    joinedSelect[A, C, D](query, toJoin)
 
   def and(f: B => Condition) =
-    Conditional(model)(
-      query.copy(conditions =
-        query.conditions.addToLast(ConditionOperators.and, f(model))
-      )
-    )
+    new Conditional(model)(andQuery(model, query, f))
 
   def or(f: B => Condition) =
-    Conditional(model)(
-      query.copy(conditions =
-        query.conditions.addToLast(ConditionOperators.or, f(model))
-      )
-    )
+    new Conditional(model)(orQuery(model, query, f))
 
-  def bind(f: Conditional[A, B] => Conditional[A, B]) =
-    Conditional(model)(
-      query.copy(conditions =
-        query.conditions
-          .dropRightFromLast(1)
-          .addToLast(
-            GeneralOperators.leftParen,
-            f(
-              Conditional(model)(
-                query
-                  .copy(conditions = ConditionList(query.conditions.last.last))
-              )
-            ).complete,
-            GeneralOperators.rightParen
-          )
-      )
-    )
+  def bind(f: Conditional[A, B] => Conditional[A, B]): Conditional[A, B] =
+    new Conditional(model)(boundQuery(query, f, model))
 
-  def complete: Argument = SqlOperations.complete(query)
+  def complete: Argument = query.complete
 
-  def construct: Fragment = SqlOperations.construct(query)
+  def construct: Fragment = query.construct
 
 final class JoinedConditional[A, B, C <: Model[B]](model: C)(query: Query)
     extends JoinedJoinable[A, B, C],
       Completable:
 
-  def join[C: ModelMeta: BiRelation, D <: Model[C]](
+  def join[C: ModelMeta, D <: Model[C]](
       toJoin: D
-  ): JoinedSelect[A, C, D] =
-    JoinedSelect(toJoin)(
-      query.copy(
-        joins = query.joins :+ SqlOperations.joinOp[A, C],
-        conditions = query.conditions.addList
-      )
-    )
+  )(using BiRelation[A, C]): JoinedSelect[A, C, D] =
+    joinedSelect[A, C, D](query, toJoin)
 
   def and(f: C => Condition) =
-    JoinedConditional(model)(
-      query.copy(conditions =
-        query.conditions.addToLast(ConditionOperators.and, f(model))
-      )
-    )
+    new JoinedConditional(model)(andQuery(model, query, f))
 
   def or(f: C => Condition) =
-    Conditional(model)(
-      query.copy(conditions =
-        query.conditions.addToLast(ConditionOperators.or, f(model))
-      )
-    )
+    new JoinedConditional(model)(orQuery(model, query, f))
 
   def bind(
       f: Conditional[B, C] => Conditional[B, C]
   ): JoinedConditional[A, B, C] =
-    JoinedConditional(model)(
-      query.copy(conditions =
-        query.conditions
-          .dropRightFromLast(1)
-          .addToLast(
-            GeneralOperators.leftParen,
-            f(
-              Conditional(model)(
-                query
-                  .copy(conditions = ConditionList(List(query.conditions.last)))
-              )
-            ).complete,
-            GeneralOperators.rightParen
-          )
-      )
+    new JoinedConditional(model)(boundQuery(query, f, model))
+
+  def complete: Argument = query.complete
+
+  def construct: Fragment = query.construct
+
+object ConditionalHelpers:
+  def boundQuery[A, B <: Model[A]](
+      query: Query,
+      f: Conditional[A, B] => Conditional[A, B],
+      model: B
+  ) =
+    query.copy(conditions =
+      query.conditions
+        .dropRightFromLast(1)
+        .addToLast(
+          GeneralOperators.leftParen,
+          f(
+            Conditional(model)(
+              query
+                .copy(conditions = ConditionList(query.conditions.last.last))
+            )
+          ).complete,
+          GeneralOperators.rightParen
+        )
     )
 
-  def complete: Argument = SqlOperations.complete(query)
+  def orQuery[A, B <: Model[A]](model: B, query: Query, f: B => Condition) =
+    query.copy(conditions =
+      query.conditions.addToLast(ConditionOperators.or, f(model))
+    )
 
-  def construct: Fragment = SqlOperations.construct(query)
-
-object Conditional:
-  def apply[A, B <: Model[A]](model: B)(query: Query): Conditional[A, B] =
-    new Conditional[A, B](model)(query)
-
-object JoinedConditional:
-  def apply[A, B, C <: Model[B]](model: C)(
-      query: Query
-  ): JoinedConditional[A, B, C] =
-    new JoinedConditional[A, B, C](model)(query)
+  def andQuery[A, B <: Model[A]](model: B, query: Query, f: B => Condition) =
+    query.copy(conditions =
+      query.conditions.addToLast(ConditionOperators.and, f(model))
+    )

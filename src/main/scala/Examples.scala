@@ -1,6 +1,3 @@
-package logic
-
-import logic.Common._
 import doobie.util.transactor.Transactor
 import cats.effect.IO
 import doobie.implicits._
@@ -16,9 +13,9 @@ import command._
 
 import doobie.util.log.LogHandler
 import doobie.util.update
-import DeriveModelMeta.deriveModelMeta
 import cats.Apply
 import cats.kernel.Semigroup
+import logic.Model._
 
 val xa = Transactor.fromDriverManager[IO](
   "org.postgresql.Driver",                     // driver classname
@@ -27,41 +24,10 @@ val xa = Transactor.fromDriverManager[IO](
   "postgres"                                   // password
 )
 
-case class Photo(name: String, photographer: String)
-
-object Photo extends Model[Photo]("photo"):
-  val name         = column[String]("name")
-  val photographer = column[String]("photographer_name")
-
-  object Meta:
-    given ModelMeta[Photo] = deriveMeta(name, photographer)
-
-given Relation[Photo, Person](Photo.photographer)
-
-case class Person(name: String, age: Int, nickname: String)
-
-object Person extends Model[Person]("person"):
-  val name     = column[String]("name")
-  val age      = column[Int]("age")
-  val nickname = column[String]("nickname")
-
-  object Meta:
-    given ModelMeta[Person] = deriveMeta(name, age, nickname)
-
-case class Pet(name: String, owner: String)
-
-object Pet extends Model[Pet]("pet"):
-  val name  = column[String]("name")
-  val owner = column[String]("owner_name")
-
-  object Meta:
-    given ModelMeta[Pet] = deriveMeta(name, owner)
-
-given Relation[Pet, Person](Pet.owner)
-
-import Photo.Meta.{given, *}
-import Person.Meta.{given, *}
-import Pet.Meta.{given, *}
+import Models.Photo.Meta.{given, *}
+import Models.Person.Meta.{given, *}
+import Models.Pet.Meta.{given, *}
+import Models._
 
 object CreateTables {
   import InitTables._
@@ -81,7 +47,8 @@ object CreateTables {
 }
 
 object Main extends IOApp {
-  import FragmentOperations.{given, *}
+  import logic.FragmentOperations._
+  import logic.FragmentOperations.{given, *}
 
   given [F[_]: Apply, A: Semigroup]: Semigroup[F[A]] =
     Apply.semigroup[F, A]

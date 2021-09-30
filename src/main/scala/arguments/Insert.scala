@@ -1,8 +1,8 @@
 package arguments
 
 import logic.FragmentOperations._
-import logic.Common._
 
+import logic.Model._
 import doobie.implicits._
 import cats.Monoid
 import cats.implicits._
@@ -10,6 +10,7 @@ import doobie.util.fragment.Fragment
 import scala.deriving.Mirror
 import scala.compiletime.{constValue, erasedValue, summonInline}
 import logic.FragmentOperations.Completable
+import logic.Query
 
 /** Insert receives an instance of A, and maps it to an insert values statement
   */
@@ -32,11 +33,8 @@ final class Insert[A](query: Query)(using meta: ModelMeta[A])
         self.query.arguments :+ foldedFields :+ Arguments.values :+ foldedValues
       )
 
-      def complete: Argument = SqlOperations.complete(query)
+      def complete: Argument = query.complete
 
-      def construct: Fragment = SqlOperations.construct(query)
+      def construct: Fragment = query.construct
     }
 }
-object Insert:
-  def apply[A: ModelMeta](query: Query) =
-    new Insert(query)
