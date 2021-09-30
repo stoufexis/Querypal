@@ -18,7 +18,7 @@ object Relation:
   ):
     val joinCondition: Argument = fromMeta.table.name
       |+| GeneralOperators.dot
-      |+| fk.name.toArgument
+      |+| fk.getName.toArgument
       |+| GeneralOperators.equals
       |+| toMeta.table.name
       |+| GeneralOperators.dot

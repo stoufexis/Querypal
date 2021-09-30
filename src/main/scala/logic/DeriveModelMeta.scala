@@ -63,9 +63,9 @@ object DeriveModelMeta:
         val elems         = a.asInstanceOf[Product].productIterator.toSeq
 
         val elemStrings = elems.zip(fields).zip(elemInstances).map {
-          case ((elem, label), instance) =>
-            (label, instance.toDoobieString(elem))
+          case ((elem, field), instance) =>
+            (field, instance.toDoobieString(elem))
         }
-        (elemStrings.map(_._1.toString), elemStrings.map(_._2))
+        (elemStrings.map(_._1.getName), elemStrings.map(_._2))
       }
     }
