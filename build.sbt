@@ -6,9 +6,10 @@ val Fs2Version        = "3.1.2"
 val DoobieVersion     = "1.0.0-RC1"
 val ScalaTestVersion  = "3.2.10"
 
-githubOwner       := "StefanosTouf"
-githubRepository  := "Querypal"
-githubTokenSource := TokenSource.GitConfig("github.token")
+githubOwner      := "StefanosTouf"
+githubRepository := "Querypal"
+githubTokenSource := TokenSource.GitConfig("github.token") || TokenSource
+  .Environment("GITHUB_TOKEN")
 
 lazy val root = project
   .in(file("."))
