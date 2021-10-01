@@ -1,4 +1,4 @@
-package logic
+package org.querypal.logic
 
 import doobie.implicits._
 import Field._

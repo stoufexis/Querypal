@@ -1,4 +1,4 @@
-package arguments
+package org.querypal.arguments
 
 import doobie.util.fragment.Fragment
 import doobie.implicits._

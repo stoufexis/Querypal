@@ -1,4 +1,4 @@
-package logic
+package org.querypal.logic
 
 import cats.implicits._
 import Model._

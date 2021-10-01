@@ -1,4 +1,4 @@
-package db_init
+package org.querypal.db_init
 
 import logic.Model._
 import doobie.util.fragment.Fragment

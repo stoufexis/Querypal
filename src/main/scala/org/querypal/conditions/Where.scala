@@ -1,4 +1,5 @@
-package conditions
+package org.querypal.conditions
+
 import logic.FragmentOperations._
 import doobie.util.fragment.Fragment
 import logic.Model._

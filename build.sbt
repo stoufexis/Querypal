@@ -13,8 +13,8 @@ githubTokenSource := TokenSource.GitConfig("github.token")
 lazy val root = project
   .in(file("."))
   .settings(
-    name         := "querypal",
-    organization := "org.querypal",
+    name         := "Querypal",
+    organization := "StefanosTouf",
     version      := "0.1.0",
     scalaVersion := scala3Version,
     libraryDependencies ++= Seq(

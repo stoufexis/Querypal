@@ -1,4 +1,4 @@
-package logic
+package org.querypal.logic
 
 import Field._
 import scala.deriving.Mirror

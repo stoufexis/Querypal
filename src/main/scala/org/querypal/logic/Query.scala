@@ -1,4 +1,4 @@
-package logic
+package org.querypal.logic
 
 import logic.FragmentOperations.Argument._
 import logic.FragmentOperations._

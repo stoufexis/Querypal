@@ -1,4 +1,4 @@
-package logic
+package org.querypal.logic
 
 import Field._
 import Model._

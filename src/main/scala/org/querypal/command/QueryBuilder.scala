@@ -1,4 +1,4 @@
-package command
+package org.querypal.command
 
 import logic.Model._
 
