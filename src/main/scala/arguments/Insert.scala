@@ -14,7 +14,6 @@ import logic.Query
 
 /** Insert receives an instance of A, and maps it to an insert values statement
   */
-
 final class Insert[A](query: Query)(using meta: ModelMeta[A])
     extends (A => Completable) { self =>
   def apply(entity: A): Completable =

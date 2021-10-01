@@ -19,9 +19,9 @@ final class Conditional[A, B <: Model[A]](model: B)(query: Query)
     extends Joinable[A, B],
       Completable:
 
-  type ABiRelation[B] = BiRelation[A, B]
+  type BiRelationOfA[B] = BiRelation[A, B]
 
-  def join[C: ModelMeta: ABiRelation, D <: Model[C]](
+  def join[C: ModelMeta: BiRelationOfA, D <: Model[C]](
       toJoin: D
   ): JoinedSelect[A, C, D] =
     joinedSelect[A, C, D](query, toJoin)
@@ -46,9 +46,9 @@ final class JoinedConditional[A, B, C <: Model[B]](model: C)(query: Query)
     extends JoinedJoinable[A, B, C],
       Completable:
 
-  type ABiRelation[B] = BiRelation[A, B]
+  type BiRelationOfA[B] = BiRelation[A, B]
 
-  def join[C: ModelMeta: ABiRelation, D <: Model[C]](
+  def join[C: ModelMeta: BiRelationOfA, D <: Model[C]](
       toJoin: D
   ): JoinedSelect[A, C, D] = joinedSelect[A, C, D](query, toJoin)
 

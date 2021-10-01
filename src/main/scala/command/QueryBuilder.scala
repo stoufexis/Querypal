@@ -17,7 +17,6 @@ import logic.Relation._
   *
   * A subclass of Model[A] is required to preserve autocompletion.
   */
-
 final class QueryBuilder[A, B <: Model[A]](model: B)(using
     meta: ModelMeta[A]
 ):
@@ -28,19 +27,11 @@ final class QueryBuilder[A, B <: Model[A]](model: B)(using
   )
 
   def delete: Where[A, B] = new WhereImpl[A, B](model)(
-    Query(
-      command = Commands.delete,
-      table = table,
-      arguments = List[Argument]()
-    )
+    Query(command = Commands.delete, table = table)
   )
 
   def insert: Insert[A] = new Insert[A](
-    Query(
-      command = Commands.insert,
-      table = table,
-      arguments = List[Argument]()
-    )
+    Query(command = Commands.insert, table = table)
   )
 
   def update(f: B => SetArgument): Set[A, B] = new Set[A, B](model)(
