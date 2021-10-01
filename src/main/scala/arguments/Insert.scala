@@ -34,5 +34,7 @@ final class Insert[A](query: Query)(using meta: ModelMeta[A])
       def complete: Argument = query.complete
 
       def construct: Fragment = query.construct
+
+      def constructString: String = query.constructString
     }
 }

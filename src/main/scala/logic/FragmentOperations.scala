@@ -117,4 +117,5 @@ object FragmentOperations:
 
     def construct: Fragment
 
+    def constructString: String
   val * : "* " = "* "

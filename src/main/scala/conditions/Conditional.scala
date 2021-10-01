@@ -42,6 +42,8 @@ final class Conditional[A, B <: Model[A]](model: B)(query: Query)
 
   def construct: Fragment = query.construct
 
+  def constructString: String = query.constructString
+
 final class JoinedConditional[A, B, C <: Model[B]](model: C)(query: Query)
     extends JoinedJoinable[A, B, C],
       Completable:
@@ -69,6 +71,8 @@ final class JoinedConditional[A, B, C <: Model[B]](model: C)(query: Query)
   def complete: Argument = query.complete
 
   def construct: Fragment = query.construct
+
+  def constructString: String = query.constructString
 
 object ConditionalHelpers:
   def boundQuery[A, B <: Model[A]](

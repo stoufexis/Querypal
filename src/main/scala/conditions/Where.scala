@@ -57,6 +57,8 @@ final class WhereImpl[A, B <: Model[A]](model: B)(query: Query)
 
       def construct: Fragment = query.construct
 
+      def constructString: String = query.constructString
+
   def apply(f: B => Condition): Conditional[A, B] & Completable =
     Conditional[A, B](model)(
       query.copy(conditionList = query.conditionList.addToLast(f(model)))
@@ -65,6 +67,8 @@ final class WhereImpl[A, B <: Model[A]](model: B)(query: Query)
   def complete: Argument = query.complete
 
   def construct: Fragment = query.construct
+
+  def constructString: String = query.constructString
 }
 
 final class JoinedWhereImpl[A, B, C <: Model[B]](model: C)(query: Query)
@@ -93,6 +97,8 @@ final class JoinedWhereImpl[A, B, C <: Model[B]](model: C)(query: Query)
 
       def construct: Fragment = query.construct
 
+      def constructString: String = query.constructString
+
   def apply(f: C => Condition): JoinedConditional[A, B, C] & Completable =
     JoinedConditional[A, B, C](model)(
       query.copy(conditionList = query.conditionList.addToLast(f(model)))
@@ -101,4 +107,6 @@ final class JoinedWhereImpl[A, B, C <: Model[B]](model: C)(query: Query)
   def complete: Argument = query.complete
 
   def construct: Fragment = query.construct
+
+  def constructString: String = query.constructString
 }

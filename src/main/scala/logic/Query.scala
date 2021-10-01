@@ -20,10 +20,12 @@ object Query:
     def complete: Argument = query.conditionList.conditions.flatten.foldArgs
 
     def construct: Fragment = Update0(
-      (List(query.command, query.table.name)
-        ++ query.joins
-        ++ query.arguments
-        :+ query.conditionList.fold).foldArgs.toString.trim
-        .replaceAll(" +", " "),
+      query.constructString,
       None
     ).toFragment
+
+    def constructString: String = (List(query.command, query.table.name)
+      ++ query.joins
+      ++ query.arguments
+      :+ query.conditionList.fold).foldArgs.toString.trim
+      .replaceAll(" +", " ")
