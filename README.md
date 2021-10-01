@@ -26,6 +26,14 @@ sql"select * from person where person.age > 13 or ( person.nickname like `The%` 
 ## Quick Start
 *Note, familiarity with Scala 3, Doobie and Cats-effect is assumed throughout this doc*
 
+### Installation
+```scala
+externalResolvers += "ExampleLibrary packages" at "https://maven.pkg.github.com/StefanosTouf/Querypal"
+libraryDependencies += "StefanosTouf" %% "Querypal" % "0.1.0"
+```
+
+### Usage 
+
 Lets define a querypal model for one of our database tables
 
 Given the table ```person```:
