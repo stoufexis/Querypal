@@ -48,7 +48,7 @@ class QueryBuilderTest extends AnyFunSuite {
         .update(_.nickname set "Young Again")
         .where(_.age > 40)
         .constructString) ==
-        "update person set age = 13 , nicname = 'Young Again' where person.age > 40"
+        "update person set age = 13 , nickname = 'Young Again' where person.age > 40"
     )
   }
 
