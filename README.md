@@ -87,6 +87,21 @@ We take advantage of scala's syntax sugars to achieve a syntax that looks very m
 ```scala
 QueryBuilder(Person).select(*).construct
 ```
+**A note on infix syntax**
+
+In giant queries, scala's infix syntax tends to get unwieldy. Thus, we can use the plain method invocation syntax.
+
+```scala
+val multiJoin = QueryBuilder(Person)
+      .select(_.age > 13)
+      .or(_.age < 12)
+      .bind(_ and (_.nickname like "%h%"))
+      .join(Photo)
+      .select(_.name like "%Selfie%")
+      .construct
+```
+
+
 **So what is actually happening?**
 
 Each method call defines a transformation of the query and returns the next step of the pipeline. Every step provides specific methods that allow transformations to that query. At the end we call construct to compile the query in the form of a doobie fragment that can be used to query the database, just like the fragments created with pure doobie. 
