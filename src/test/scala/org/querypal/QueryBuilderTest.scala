@@ -1,11 +1,11 @@
 import org.scalatest.funsuite.AnyFunSuite
-import logic.Model._
-import logic.Relation._
-import command.QueryBuilder
+import org.querypal.logic.Model._
+import org.querypal.logic.Relation._
+import org.querypal.command.QueryBuilder
 import scala.language.postfixOps
-import logic.FragmentOperations._
-import logic.FragmentOperations.{given, *}
-import logic.FragmentOperations.{given, *}
+import org.querypal.logic.FragmentOperations._
+import org.querypal.logic.FragmentOperations.{given, *}
+import org.querypal.logic.FragmentOperations.{given, *}
 
 case class Person(name: String, age: Int, nickname: String)
 case class Photo(name: String, photographer: String)
