@@ -127,6 +127,31 @@ object Main extends IOApp {
   def run(args: List[String]): IO[ExitCode] =
     implicit val han = LogHandler.jdkLogHandler
 
+    val selectAll = QueryBuilder(Person) select * construct
+
+    for
+      people <- selectAll.query[Person].to[List].transact(xa)
+      _      <- IO.println(people)
+    yield ExitCode.Success
+
+    val set = QueryBuilder(
+      Person
+    ) update (_.age set 13) update (_.nickname set "Young Again") where (_.age > 40) construct
+
+    for
+      res <- set.update.run.transact(xa)
+      _   <- IO.println(res)
+    yield ExitCode.Success
+
+    val query = QueryBuilder(
+      Person
+    ) select (_.age < 14) or (_.nickname like "%e%") bind (_ and (_.age < 30)) construct
+
+    for
+      aa <- query.query[Person].to[List].transact(xa)
+      _  <- IO.println(aa)
+    yield ExitCode.Success
+
     val multiJoin = QueryBuilder(Person) select
       (_.age > 13) or (_.age < 12) bind (_ and (_.nickname like "%h%")) join
       Photo select (_.name like "%Selfie%") construct
@@ -136,4 +161,12 @@ object Main extends IOApp {
       _   <- IO.println(res)
     yield ExitCode.Success
 
+    val del = QueryBuilder(
+      Person
+    ) delete (_.name === "Sam") or (_.name === "Baily") construct
+
+    for
+      aa <- del.update.run.transact(xa)
+      _  <- IO.println(aa)
+    yield ExitCode.Success
 }
