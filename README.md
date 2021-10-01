@@ -215,8 +215,13 @@ Now we can join Photo and Pet to Person while selecting from them
 ```scala
 //after joining with photo, you are selecting from photo.
 //after joining with pet, you are selecting from pet
-val multiJoin = QueryBuilder(Person) select (_.age > 20) join
-      Photo select (_.name like "A Day in the%") join Pet select (_.name like "G%") construct
+val multiJoin = QueryBuilder(Person)
+      .select(_.age > 20)
+      .join(Photo)
+      .select(_.name like "A Day in the%")
+      .join(Pet)
+      .select(_.name like "G%")
+      .construct
 ```
 The above query compiles to
 ```scala
@@ -311,10 +316,15 @@ yield  ExitCode.Success
 
 *complex join with intermediary selects*
 ```scala
-val multiJoin = QueryBuilder(Person) select
-      (_.age > 13) or (_.age < 12) bind (_ and (_.nickname like "%")) join
-      Photo select (_.name like "%Selfie%") join Pet select (_.name like "%%") construct
-
+val multiJoin = QueryBuilder(Person)
+      .select(_.age > 13)
+      .or(_.age < 12)
+      .bind(_ and (_.nickname like "%"))
+      .join(Photo)
+      .select(_.name like "%Selfie%")
+      .join(Pet)
+      .select(_.name like "%%")
+      .construct
 for
   res <- multiJoin.query[(Person, Photo, Pet)].to[List].transact(xa)
   _   <- IO.println(res)
