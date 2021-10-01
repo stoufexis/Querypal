@@ -33,7 +33,7 @@ Given the table ```person```:
 create table person  
 (  
     name     varchar not null  constraint person_pk  primary key,  
-    age      integer,  
+    age      integer not null,  
     nickname varchar not null  
 );
 ```
