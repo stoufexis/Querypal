@@ -23,6 +23,7 @@ object Query:
       (List(query.command, query.table.name)
         ++ query.joins
         ++ query.arguments
-        :+ query.conditionList.fold).foldArgs.toString,
+        :+ query.conditionList.fold).foldArgs.toString.trim
+        .replaceAll(" +", " "),
       None
     ).toFragment
