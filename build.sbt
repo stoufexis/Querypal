@@ -6,10 +6,15 @@ val Fs2Version        = "3.1.2"
 val DoobieVersion     = "1.0.0-RC1"
 val ScalaTestVersion  = "3.2.10"
 
+githubOwner       := "StefanosTouf"
+githubRepository  := "Querypal"
+githubTokenSource := TokenSource.GitConfig("github.token")
+
 lazy val root = project
   .in(file("."))
   .settings(
-    name         := "scala3-simple",
+    name         := "querypal",
+    organization := "org.querypal",
     version      := "0.1.0",
     scalaVersion := scala3Version,
     libraryDependencies ++= Seq(
