@@ -5,7 +5,7 @@ import Field._
 import cats.kernel.Monoid
 import cats.implicits._
 import doobie.syntax.SqlInterpolator.SingleFragment.fromFragment
-import conditions.JoinedSelect
+import org.querypal.conditions.JoinedSelect
 import FragmentOperations.Argument
 import Model._
 import doobie.util.fragment.Fragment

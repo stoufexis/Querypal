@@ -3,7 +3,7 @@ package org.querypal.logic
 import cats.implicits._
 import Model._
 import Relation._
-import conditions.JoinedSelect
+import org.querypal.conditions.JoinedSelect
 import FragmentOperations.{SqlOperations, Completable, Argument, Arguments}
 
 object Join:

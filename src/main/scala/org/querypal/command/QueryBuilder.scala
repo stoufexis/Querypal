@@ -1,16 +1,15 @@
 package org.querypal.command
 
-import logic.Model._
-
+import org.querypal.logic.Model._
 import doobie.implicits._
 import doobie.util.fragment.Fragment
-import logic.FragmentOperations.Commands
-import logic.FragmentOperations._
-import conditions._
-import arguments._
-import logic.Join._
-import logic.Query
-import logic.Relation._
+import org.querypal.logic.FragmentOperations.Commands
+import org.querypal.logic.FragmentOperations._
+import org.querypal.conditions._
+import org.querypal.arguments._
+import org.querypal.logic.Join._
+import org.querypal.logic.Query
+import org.querypal.logic.Relation._
 
 /** The starting point of every query with A being the entity and B being the
   * Model of A (an object containing the fields).

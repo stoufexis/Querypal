@@ -3,7 +3,7 @@ package org.querypal.logic
 import Field._
 import scala.deriving.Mirror
 import DeriveModelMeta._
-import logic.FragmentOperations.Table
+import FragmentOperations.Table
 
 object Model:
 

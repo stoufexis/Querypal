@@ -1,7 +1,7 @@
 package org.querypal.logic
 
-import logic.FragmentOperations.Argument._
-import logic.FragmentOperations._
+import FragmentOperations.Argument._
+import FragmentOperations._
 import doobie.util.fragment.Fragment
 import doobie.util.update.Update0
 

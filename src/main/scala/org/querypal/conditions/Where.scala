@@ -1,9 +1,9 @@
 package org.querypal.conditions
 
-import logic.FragmentOperations._
+import org.querypal.logic.FragmentOperations._
 import doobie.util.fragment.Fragment
-import logic.Model._
-import logic.Join.{
+import org.querypal.logic.Model._
+import org.querypal.logic.Join.{
   Joinable,
   JoinedJoinable,
   BiRelation,
@@ -12,7 +12,7 @@ import logic.Join.{
   JoinedJoinableCompletable
 }
 
-import logic.Query
+import org.querypal.logic.Query
 
 trait JoinedWhere[A, B, C <: Model[B]] extends Completable {
   def apply(all: "* "): JoinedJoinable[A, B, C] & Completable

@@ -1,6 +1,6 @@
 package org.querypal.db_init
 
-import logic.Model._
+import org.querypal.logic.Model._
 import doobie.util.fragment.Fragment
 import doobie.util.update.Update0
 import cats.Apply
@@ -8,7 +8,7 @@ import cats.kernel.Monoid
 import cats.kernel.Semigroup
 import cats.implicits._
 import doobie.ConnectionIO
-import logic.Relation._
+import org.querypal.logic.Relation._
 
 object InitTables:
 

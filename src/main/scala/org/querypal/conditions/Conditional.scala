@@ -1,13 +1,18 @@
 package org.querypal.conditions
 
-import logic.Model._
+import org.querypal.logic.Model._
 import doobie.util.fragment.Fragment
 import doobie.implicits._
-import logic.FragmentOperations._
-import logic.ConditionList
-import logic.Join.{Joinable, joinedSelect, JoinedJoinable, BiRelation}
+import org.querypal.logic.FragmentOperations._
+import org.querypal.logic.ConditionList
 import ConditionalHelpers._
-import logic.Query
+import org.querypal.logic.Query
+import org.querypal.logic.Join.{
+  Joinable,
+  joinedSelect,
+  JoinedJoinable,
+  BiRelation
+}
 
 /** Conditional helps you construct the conditions of your query. With A being
   * the entity queried and B being the object containing the modeled fields of

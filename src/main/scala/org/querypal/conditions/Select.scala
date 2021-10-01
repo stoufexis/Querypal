@@ -1,9 +1,9 @@
 package org.querypal.conditions
 
-import logic.Model._
-import logic.FragmentOperations._
-import logic.Join._
-import logic.Query
+import org.querypal.logic.Model._
+import org.querypal.logic.FragmentOperations._
+import org.querypal.logic.Join._
+import org.querypal.logic.Query
 
 final class Select[A, B <: Model[A]](model: B)(query: Query) {
   def select: Where[A, B] & Joinable[A, B] =
