@@ -152,9 +152,13 @@ object Main extends IOApp {
       _  <- IO.println(aa)
     yield ExitCode.Success
 
-    val multiJoin = QueryBuilder(Person) select
-      (_.age > 13) or (_.age < 12) bind (_ and (_.nickname like "%h%")) join
-      Photo select (_.name like "%Selfie%") construct
+    val multiJoin = QueryBuilder(Person)
+      .select(_.age > 13)
+      .or(_.age < 12)
+      .bind(_ and (_.nickname like "%h%"))
+      .join(Photo)
+      .select(_.name like "%Selfie%")
+      .construct
 
     for
       res <- multiJoin.query[(Person, Photo)].to[List].transact(xa)
@@ -166,7 +170,7 @@ object Main extends IOApp {
     ) delete (_.name === "Sam") or (_.name === "Baily") construct
 
     for
-      aa <- del.update.run.transact(xa)
-      _  <- IO.println(aa)
+      // aa <- del.update.run.transact(xa)
+      _ <- IO.println(del)
     yield ExitCode.Success
 }
