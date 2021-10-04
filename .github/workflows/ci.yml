@@ -23,7 +23,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       username: StefanosTouf
-      password: ${{ secrets.GITHUB_TOKEN }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     permissions:
       packages: write
       contents: read
