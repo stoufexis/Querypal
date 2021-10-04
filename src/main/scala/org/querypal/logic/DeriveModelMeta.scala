@@ -23,6 +23,14 @@ object DeriveModelMeta:
     def toDoobieString(a: String): String = s"'${a}'"
   }
 
+  given [A](using toDoobie: ToDoobieString[A]): ToDoobieString[List[A]] with {
+    def toDoobieString(a: List[A]): String = "ARRAY[" + a
+      .flatMap(elem => List(toDoobie.toDoobieString(elem), ", "))
+      .dropRight(1)
+      .fold("")(_ + _) + "]"
+
+  }
+
   inline def getElemLabels[A <: Tuple]: List[String] =
     inline erasedValue[A] match {
       case _: EmptyTuple => Nil

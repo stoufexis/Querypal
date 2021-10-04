@@ -9,6 +9,6 @@ object Field:
       toType: ToTypeDescription[B]
   ):
     val getName                   = name
-    val toTypeDescription: String = toType.toTypeDescription(name)
+    val toTypeDescription: String = toType.toTypeDescription(name) + " not null"
 
   case class PrimaryKey[A, B](field: Column[A, B])

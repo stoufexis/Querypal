@@ -4,6 +4,7 @@ import Field._
 import scala.deriving.Mirror
 import DeriveModelMeta._
 import FragmentOperations.Table
+import org.querypal.logic.Model.ToTypeDescription
 
 object Model:
 
@@ -12,11 +13,17 @@ object Model:
   }
 
   given ToTypeDescription[String] with {
-    def toTypeDescription(name: String): String = s"$name varchar not null"
+    def toTypeDescription(name: String): String = s"$name text"
   }
 
   given ToTypeDescription[Int] with {
-    def toTypeDescription(name: String): String = s"$name integer not null"
+    def toTypeDescription(name: String): String = s"$name integer"
+  }
+
+  given [A](using typeDescr: ToTypeDescription[A]): ToTypeDescription[List[A]]
+    with {
+    def toTypeDescription(name: String): String =
+      typeDescr.toTypeDescription(name) + "[]"
   }
 
   /** The trait to be extended by the model of A. It provides helpful type

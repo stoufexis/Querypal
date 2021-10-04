@@ -9,6 +9,7 @@ import org.querypal.conditions.JoinedSelect
 import FragmentOperations.Argument
 import Model._
 import doobie.util.fragment.Fragment
+import org.querypal.logic.DeriveModelMeta.ToDoobieString
 
 object FragmentOperations:
 
@@ -25,16 +26,17 @@ object FragmentOperations:
     * in the query construction and SQL-like syntax
     */
   trait FieldOps[A]:
-    extension [B](x: Column[B, A])(using meta: ModelMeta[B])
+    extension [B](
+        x: Column[B, A]
+    )(using meta: ModelMeta[B], toDoobie: ToDoobieString[A])
       def ===(y: A): EqualsCondition = y match
         case z: Int =>
           s"${meta.table.name}" ++ s"." ++ s"${x.getName} = ${(z: Int)} "
         case z: String =>
           s"${meta.table.name}" ++ s"." ++ s"${x.getName} = '${(z: String)}' "
 
-      def set(y: A): SetArgument = y match
-        case z: Int    => s"${x.getName} = ${z: Int} "
-        case z: String => s"${x.getName} = '${z: String}' "
+      def set(y: A): SetArgument =
+        s"${x.getName} = ${toDoobie.toDoobieString(y)} "
 
   given FieldOps[Int] with
     extension [B](x: Column[B, Int])(using meta: ModelMeta[B])
@@ -48,6 +50,11 @@ object FragmentOperations:
     extension [B](x: Column[B, String])(using meta: ModelMeta[B])
       def like(y: String): Condition =
         meta.table.name ++ s".${x.getName} like '${y}' "
+
+  given [A](using toDoobie: ToDoobieString[List[A]]): FieldOps[List[A]] with
+    extension [B](x: Column[B, List[A]])(using meta: ModelMeta[B])
+      def @>(elems: List[A]): Condition =
+        meta.table.name ++ s".${x.getName} @> ${toDoobie.toDoobieString(elems)}"
 
   extension (x: Argument) def ++(y: Argument) = x ++ y
 
