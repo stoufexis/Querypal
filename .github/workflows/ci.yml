@@ -19,16 +19,3 @@ jobs:
     - name: Build and Test
       run: sbt -v -Dfile.encoding=UTF-8 +test
       run
-
-  publish-gpr:
-    needs: build
-    runs-on: ubuntu-latest
-    env:
-      GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
-    permissions:
-      packages: write
-      contents: read
-    steps:
-      - uses: actions/checkout@v1
-      - run: sbt publish
- 
