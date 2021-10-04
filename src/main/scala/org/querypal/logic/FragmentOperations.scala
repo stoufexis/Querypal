@@ -56,6 +56,17 @@ object FragmentOperations:
       def @>(elems: List[A]): Condition =
         meta.table.name ++ s".${x.getName} @> ${toDoobie.toDoobieString(elems)}"
 
+      def like(y: String): Condition =
+        s"""
+           (
+            0 < (
+              SELECT COUNT(*) 
+              FROM unnest(${meta.table.name}.${x.getName}) AS a
+              WHERE a LIKE '$y'
+            )
+          )
+        """
+
   extension (x: Argument) def ++(y: Argument) = x ++ y
 
   /** Helped methods that abstract the details of the sql syntax from the main
