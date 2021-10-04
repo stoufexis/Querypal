@@ -20,10 +20,10 @@ jobs:
       run: sbt -v -Dfile.encoding=UTF-8 +test
   publish-gpr:
     needs: test
-    username: StefanosTouf
-    password: ${{ secrets.GITHUB_TOKEN }}
+    runs-on: ubuntu-latest
     env:
-      GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+      username: StefanosTouf
+      password: ${{ secrets.GITHUB_TOKEN }}
     permissions:
       packages: write
       contents: read
