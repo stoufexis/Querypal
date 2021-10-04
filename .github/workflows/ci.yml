@@ -20,7 +20,7 @@ jobs:
       run: sbt -v -Dfile.encoding=UTF-8 +test
       run
 
-   publish-gpr:
+  publish-gpr:
     needs: build
     runs-on: ubuntu-latest
     env:
