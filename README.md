@@ -36,7 +36,7 @@ cats effect 3.2.8
 Installing Querypal
 ```scala
 externalResolvers += "ExampleLibrary packages" at "https://maven.pkg.github.com/StefanosTouf/Querypal"
-libraryDependencies += "StefanosTouf" %% "Querypal" % "0.1.1"
+libraryDependencies += "StefanosTouf" %% "querypal" % "0.1.1"
 ```
 
 ### Usage 
