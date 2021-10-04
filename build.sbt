@@ -13,7 +13,7 @@ lazy val root = project
   .settings(
     name         := "Querypal",
     organization := "StefanosTouf",
-    version      := "0.1.1",
+    version      := "0.1.0",
     scalaVersion := scala3Version,
     libraryDependencies ++= Seq(
       "org.typelevel" %% "cats-effect"        % CatsEffectVersion,
