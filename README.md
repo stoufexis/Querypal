@@ -146,7 +146,7 @@ Where autocompletes shine the most is during composition of conditionals and com
 ![demo_autocompletes](https://user-images.githubusercontent.com/61254766/134810211-208b59df-32d3-4794-a621-fc9362f5fe2b.gif)
 
 
-When you need to reference your table inside your query, querypal provides you with a lambda, giving you your model and expecting back a condition. Then using the underscore syntax for lambdas you can reference any of your fields (while getting useful autocompletes) and construct the condition using querypals operators resulting in a functional pipeline that closely resembles an sql query. 
+When you need to reference your table inside your query, querypal expects a lambda, giving you your model and expecting back a condition. Then using the underscore syntax for lambdas you can reference any of your fields (while getting useful autocompletes) and construct the condition using querypals operators resulting in a functional pipeline that closely resembles an sql query. 
 
 Querypal also makes sure you cant write an invalid query, by only giving you access to the correct possible next steps
 
