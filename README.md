@@ -258,7 +258,7 @@ create unique index photo_name_uindex on photo (name);
 ``` 
 
 ### Snippets 
-Below are provided a few code snippets using out above set up to demonstrate querypals features.
+Below are a few code snippets using our above set-up to demonstrate querypal's features.
 
 *basic insert:*
 ```scala
