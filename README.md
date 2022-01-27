@@ -74,7 +74,7 @@ object Person extends Model[Person]:
 
 ### So what do we get from all that?
 
-**The dsl**:
+#### The dsl:
 To start writting a query all we need to do is instanciate a ```QueryBuilder``` using our ```Person``` 
 ```scala
  QueryBuilder(Person)
