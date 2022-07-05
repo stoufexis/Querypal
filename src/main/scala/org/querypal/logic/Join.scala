@@ -5,41 +5,41 @@ import Model._
 import Relation._
 import org.querypal.conditions.JoinedSelect
 import FragmentOperations.{SqlOperations, Completable, Argument, Arguments}
+import org.querypal.logic.QueryType._
 
 object Join:
-  def joinedSelect[A, B: ModelMeta, C <: Model[B]](query: Query, toJoin: C)(
+  def joinedSelect[A, B: ModelMeta, C <: Model[B], T <: QueryType](query: Query[T], toJoin: C)(
       using Relation[A, B] | Relation[B, A]
-  ): JoinedSelect[A, B, C] = JoinedSelect[A, B, C](toJoin)(
+  ): JoinedSelect[A, B, C, T] = JoinedSelect(toJoin)(
     query.copy(
       joins = query.joins :+ joinOp[A, B],
-      conditionList = query.conditionList.addList
-    )
-  )
+      conditionList = query.conditionList.addList))
 
   def joinOp[A, B](using
       relation: Relation[A, B] | Relation[B, A],
       toMeta: ModelMeta[B]
-  ): Argument = Arguments.innerJoin
-    |+| toMeta.table.name
-    |+| Arguments.on
-    |+| relation.joinCondition
+  ): Argument =
+    Arguments.innerJoin
+      |+| toMeta.table.name
+      |+| Arguments.on
+      |+| relation.joinCondition
 
   type BiRelation[A, B] = Relation[A, B] | Relation[B, A]
 
-  trait Joinable[A, B <: Model[A]]:
+  trait Joinable[A, B <: Model[A], T <: QueryType]:
     def join[C: ModelMeta, D <: Model[C]](
-        toJoin: D
-    )(using BiRelation[A, C]): JoinedSelect[A, C, D]
+        toJoin: D)(
+        using BiRelation[A, C]): JoinedSelect[A, C, D, T]
 
-  trait JoinedJoinable[A, B, C <: Model[B]]:
+  trait JoinedJoinable[A, B, C <: Model[B], T <: QueryType]:
     def join[D: ModelMeta, E <: Model[D]](
-        toJoin: E
-    )(using BiRelation[A, D]): JoinedSelect[A, D, E]
+        toJoin: E)(
+        using BiRelation[A, D]): JoinedSelect[A, D, E, T]
 
-  trait JoinableCompletable[A, B <: Model[A]]
-      extends Joinable[A, B],
-        Completable
+  trait JoinableCompletable[A, B <: Model[A], T <: QueryType]
+      extends Joinable[A, B, T],
+        Completable[T]
 
-  trait JoinedJoinableCompletable[A, B, C <: Model[B]]
-      extends JoinedJoinable[A, B, C],
-        Completable
+  trait JoinedJoinableCompletable[A, B, C <: Model[B], T <: QueryType]
+      extends JoinedJoinable[A, B, C, T],
+        Completable[T]

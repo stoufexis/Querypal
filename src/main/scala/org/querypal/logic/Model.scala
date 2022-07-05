@@ -8,32 +8,25 @@ import org.querypal.logic.Model.ToTypeDescription
 
 object Model:
 
-  trait ToTypeDescription[A] {
+  trait ToTypeDescription[A]:
     def toTypeDescription(name: String): String
-  }
 
-  given ToTypeDescription[String] with {
+  given ToTypeDescription[String] with
     def toTypeDescription(name: String): String = s"$name text"
-  }
 
-  given ToTypeDescription[Int] with {
+  given ToTypeDescription[Int] with
     def toTypeDescription(name: String): String = s"$name integer"
-  }
 
-  given [A](using typeDescr: ToTypeDescription[A]): ToTypeDescription[List[A]]
-    with {
+  given [A](using TD: ToTypeDescription[A]): ToTypeDescription[List[A]] with
     def toTypeDescription(name: String): String =
-      typeDescr.toTypeDescription(name) + "[]"
-  }
+      TD.toTypeDescription(name) + "[]"
 
-  /** The trait to be extended by the model of A. It provides helpful type
-    * inference in other parts of the pipeline and some helpful methods to
-    * construct the model
+  /** The trait to be extended by the model of A. It provides helpful type inference in other parts
+    * of the pipeline and some helpful methods to construct the model
     */
   trait Model[A]:
     protected inline def deriveMeta(tableName: String, fields: Column[?, ?]*)(
-        using m: Mirror.ProductOf[A]
-    ) = deriveModelMeta[m.MirroredMonoType](tableName)(fields)
+        using m: Mirror.ProductOf[A]) = deriveModelMeta[m.MirroredMonoType](tableName)(fields)
 
     protected def column[B: ToTypeDescription](name: String): Column[A, B] =
       Column(name)

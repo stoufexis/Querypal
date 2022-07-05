@@ -10,6 +10,7 @@ import FragmentOperations.Argument
 import Model._
 import doobie.util.fragment.Fragment
 import org.querypal.logic.DeriveModelMeta.ToDoobieString
+import org.querypal.logic.QueryType._
 
 object FragmentOperations:
 
@@ -22,15 +23,15 @@ object FragmentOperations:
   opaque type SetArgument <: Argument       = String
   opaque type InsertArgument <: Argument    = String
 
-  /** Operators used in the query-building pipeline. They enable type checking
-    * in the query construction and SQL-like syntax
+  /** Operators used in the query-building pipeline. They enable type checking in the query
+    * construction and SQL-like syntax
     */
   trait FieldOps[A]:
     extension [B](
         x: Column[B, A]
     )(using meta: ModelMeta[B], toDoobie: ToDoobieString[A])
       def ===(y: A): EqualsCondition = y match
-        case z: Int =>
+        case z: Int    =>
           s"${meta.table.name}" ++ s"." ++ s"${x.getName} = ${(z: Int)} "
         case z: String =>
           s"${meta.table.name}" ++ s"." ++ s"${x.getName} = '${(z: String)}' "
@@ -69,8 +70,7 @@ object FragmentOperations:
 
   extension (x: Argument) def ++(y: Argument) = x ++ y
 
-  /** Helped methods that abstract the details of the sql syntax from the main
-    * pipeline
+  /** Helped methods that abstract the details of the sql syntax from the main pipeline
     */
 
   object GeneralOperators:
@@ -105,8 +105,7 @@ object FragmentOperations:
       s"(" |+| content
         .drop(1)
         .fold(content.head)((x, y) =>
-          x ++ (GeneralOperators.comma ++ y)
-        ) ++ GeneralOperators.rightParen
+          x ++ (GeneralOperators.comma ++ y)) ++ GeneralOperators.rightParen
 
   object Arguments:
     val where: Argument     = " where "
@@ -124,16 +123,14 @@ object FragmentOperations:
       def foldArgs: Argument =
         content.fold(Monoid[Argument].empty)(_ |+| _)
 
-    given Monoid[Argument] with {
-      def empty = ""
+    given Monoid[Argument] with
+      def empty                                                       = ""
+      def combine(x: Argument, y: String | Argument): EqualsCondition = x + y
 
-      def combine(x: Argument, y: String | Argument) = x + y
-    }
-
-  trait Completable:
+  trait Completable[T <: QueryType]:
     def complete: Argument
-
     def construct: Fragment
-
     def constructString: String
+    def getQuery: Query[T]
+
   val * : "* " = "* "

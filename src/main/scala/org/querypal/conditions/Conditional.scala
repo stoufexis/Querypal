@@ -1,46 +1,37 @@
 package org.querypal.conditions
 
-import org.querypal.logic.Model._
+import org.querypal.logic.Model.*
 import doobie.util.fragment.Fragment
-import doobie.implicits._
-import org.querypal.logic.FragmentOperations._
-import org.querypal.logic.ConditionList
-import ConditionalHelpers._
-import org.querypal.logic.Query
-import org.querypal.logic.Join.{
-  Joinable,
-  joinedSelect,
-  JoinedJoinable,
-  BiRelation
-}
+import doobie.implicits.*
+import org.querypal.logic.FragmentOperations.*
+import org.querypal.logic.{ConditionList, Query}
+import org.querypal.logic.QueryType._
+import ConditionalHelpers.*
+import org.querypal.logic.Join.{BiRelation, Joinable, JoinedJoinable, joinedSelect}
 
-/** Conditional helps you construct the conditions of your query. With A being
-  * the entity queried and B being the object containing the modeled fields of
-  * A. On each step, B is provided to take advantage of autocompletes and create
-  * typed conditionals.
+/** Conditional helps you construct the conditions of your query. With A being the entity queried
+  * and B being the object containing the modeled fields of A. On each step, B is provided to take
+  * advantage of autocompletes and create typed conditionals.
   */
 
-final class Conditional[A, B <: Model[A]](model: B)(query: Query)
-    extends Joinable[A, B],
-      Completable:
+final class Conditional[A, B <: Model[A], T <: QueryType](model: B)(query: Query[T])
+    extends Joinable[A, B, T], Completable[T]:
 
   type BiRelationOfA[B] = BiRelation[A, B]
 
-  def join[C: ModelMeta: BiRelationOfA, D <: Model[C]](
-      toJoin: D
-  ): JoinedSelect[A, C, D] =
-    joinedSelect[A, C, D](query, toJoin)
+  def join[C: ModelMeta: BiRelationOfA, D <: Model[C]](toJoin: D): JoinedSelect[A, C, D, T] =
+    joinedSelect(query, toJoin)
 
-  private def nextConditional(query: Query): Conditional[A, B] =
-    new Conditional[A, B](model)(query)
+  private def nextConditional(q: Query[T]): Conditional[A, B, T] =
+    new Conditional(model)(q)
 
-  def and(f: B => Condition): Conditional[A, B] =
+  def and(f: B => Condition): Conditional[A, B, T] =
     nextConditional(andQuery(model, query, f))
 
-  def or(f: B => Condition): Conditional[A, B] =
+  def or(f: B => Condition): Conditional[A, B, T] =
     nextConditional(orQuery(model, query, f))
 
-  def bind(f: Conditional[A, B] => Conditional[A, B]): Conditional[A, B] =
+  def bind(f: Conditional[A, B, T] => Conditional[A, B, T]): Conditional[A, B, T] =
     nextConditional(boundQuery(query, f, model))
 
   def complete: Argument = query.complete
@@ -49,28 +40,26 @@ final class Conditional[A, B <: Model[A]](model: B)(query: Query)
 
   def constructString: String = query.constructString
 
-final class JoinedConditional[A, B, C <: Model[B]](model: C)(query: Query)
-    extends JoinedJoinable[A, B, C],
-      Completable:
+  def getQuery: Query[T] = query
+
+final class JoinedConditional[A, B, C <: Model[B], T <: QueryType](model: C)(query: Query[T])
+    extends JoinedJoinable[A, B, C, T], Completable[T]:
 
   type BiRelationOfA[B] = BiRelation[A, B]
 
-  def join[C: ModelMeta: BiRelationOfA, D <: Model[C]](
-      toJoin: D
-  ): JoinedSelect[A, C, D] = joinedSelect[A, C, D](query, toJoin)
+  def join[C: ModelMeta: BiRelationOfA, D <: Model[C]](toJoin: D): JoinedSelect[A, C, D, T] =
+    joinedSelect(query, toJoin)
 
-  private def nextConditional(query: Query): JoinedConditional[A, B, C] =
-    new JoinedConditional[A, B, C](model)(query)
+  private def nextConditional(query: Query[T]): JoinedConditional[A, B, C, T] =
+    new JoinedConditional(model)(query)
 
-  def and(f: C => Condition): JoinedConditional[A, B, C] =
+  def and(f: C => Condition): JoinedConditional[A, B, C, T] =
     nextConditional(andQuery(model, query, f))
 
-  def or(f: C => Condition): JoinedConditional[A, B, C] =
+  def or(f: C => Condition): JoinedConditional[A, B, C, T] =
     nextConditional(orQuery(model, query, f))
 
-  def bind(
-      f: Conditional[B, C] => Conditional[B, C]
-  ): JoinedConditional[A, B, C] =
+  def bind(f: Conditional[B, C, T] => Conditional[B, C, T]): JoinedConditional[A, B, C, T] =
     nextConditional(boundQuery(query, f, model))
 
   def complete: Argument = query.complete
@@ -78,36 +67,30 @@ final class JoinedConditional[A, B, C <: Model[B]](model: C)(query: Query)
   def construct: Fragment = query.construct
 
   def constructString: String = query.constructString
+
+  def getQuery: Query[T] = query
 
 object ConditionalHelpers:
-  def boundQuery[A, B <: Model[A]](
-      query: Query,
-      f: Conditional[A, B] => Conditional[A, B],
-      model: B
-  ) =
+  def boundQuery[A, B <: Model[A], T <: QueryType](
+      query: Query[T],
+      f: Conditional[A, B, T] => Conditional[A, B, T],
+      model: B): Query[T] =
     query.copy(conditionList =
       query.conditionList
         .dropRightFromLast(1)
         .addToLast(
           GeneralOperators.leftParen,
           f(
-            Conditional(model)(
-              query = query
-                .copy(conditionList =
-                  ConditionList(query.conditionList.last.last)
-                )
-            )
-          ).complete,
-          GeneralOperators.rightParen
-        )
-    )
+            Conditional(model)(query =
+              query.copy(conditionList =
+                ConditionList(query.conditionList.last.last))))
+            .complete,
+          GeneralOperators.rightParen))
 
-  def orQuery[A, B <: Model[A]](model: B, query: Query, f: B => Condition) =
+  def orQuery[A, B <: Model[A], T <: QueryType](model: B, query: Query[T], f: B => Condition): Query[T] =
     query.copy(conditionList =
-      query.conditionList.addToLast(ConditionOperators.or, f(model))
-    )
+      query.conditionList.addToLast(ConditionOperators.or, f(model)))
 
-  def andQuery[A, B <: Model[A]](model: B, query: Query, f: B => Condition) =
+  def andQuery[A, B <: Model[A], T <: QueryType](model: B, query: Query[T], f: B => Condition): Query[T] =
     query.copy(conditionList =
-      query.conditionList.addToLast(ConditionOperators.and, f(model))
-    )
+      query.conditionList.addToLast(ConditionOperators.and, f(model)))

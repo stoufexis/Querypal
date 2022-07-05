@@ -5,9 +5,19 @@ import FragmentOperations._
 import doobie.util.fragment.Fragment
 import doobie.util.update.Update0
 
+object QueryType {
+  type Select
+  type Insert
+  type Update
+  type Delete
+
+  type QueryType =
+    Select | Insert | Update | Delete
+}
+
 /** The query in its preconstructed form
   */
-case class Query(
+case class Query[T <: QueryType.QueryType](
     command: Command,
     table: Table,
     arguments: List[Argument] = List(),
@@ -16,7 +26,7 @@ case class Query(
 )
 
 object Query:
-  extension (query: Query)
+  extension [T <: QueryType.QueryType](query: Query[T])
     def complete: Argument = query.conditionList.conditions.flatten.foldArgs
 
     def construct: Fragment = Update0(
