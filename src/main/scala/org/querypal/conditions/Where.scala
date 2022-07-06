@@ -3,16 +3,9 @@ package org.querypal.conditions
 import org.querypal.logic.FragmentOperations.*
 import doobie.util.fragment.Fragment
 import org.querypal.logic.Model.*
-import org.querypal.logic.Join.{
-  BiRelation,
-  Joinable,
-  JoinableCompletable,
-  JoinedJoinable,
-  JoinedJoinableCompletable,
-  joinedSelect
-}
-import org.querypal.logic.Query
-import org.querypal.logic.QueryType._
+import org.querypal.logic.Join.{BiRelation, Joinable, JoinableCompletable, JoinedJoinable, JoinedJoinableCompletable, joinedSelect}
+import org.querypal.logic.{Completable, Query, QueryType}
+import org.querypal.logic.Completable.*
 
 trait JoinedWhere[A, B, C <: Model[B], T <: QueryType] extends Completable[T]:
   def apply(all: "* "): JoinedJoinable[A, B, C, T] & Completable[T]
@@ -46,7 +39,7 @@ final class WhereImpl[A, B <: Model[A], T <: QueryType](model: B)(query: Query[T
 
       def constructString: String = query.constructString
 
-      def getQuery: Query[T] = query
+      def executeOps[A](using TP: TypeProvider[T, A]): TP.R = TP.apply(query)
 
   def apply(f: B => Condition): Conditional[A, B, T] & Completable[T] =
     Conditional(model)(
@@ -58,7 +51,7 @@ final class WhereImpl[A, B <: Model[A], T <: QueryType](model: B)(query: Query[T
 
   def constructString: String = query.constructString
 
-  def getQuery: Query[T] = query
+  def executeOps[A](using TP: TypeProvider[T, A]): TP.R = TP.apply(query)
 }
 
 final class JoinedWhereImpl[A, B, C <: Model[B], T <: QueryType](model: C)(query: Query[T])
@@ -84,7 +77,7 @@ final class JoinedWhereImpl[A, B, C <: Model[B], T <: QueryType](model: C)(query
 
       def constructString: String = query.constructString
 
-      def getQuery: Query[T] = query
+      def executeOps[A](using TP: TypeProvider[T, A]): TP.R = TP.apply(query)
 
   def apply(f: C => Condition): JoinedConditional[A, B, C, T] & Completable[T] =
     JoinedConditional(model)(
@@ -96,5 +89,5 @@ final class JoinedWhereImpl[A, B, C <: Model[B], T <: QueryType](model: C)(query
 
   def constructString: String = query.constructString
 
-  def getQuery: Query[T] = self.query
+  def executeOps[A](using TP: TypeProvider[T, A]): TP.R = TP.apply(query)
 }

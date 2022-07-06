@@ -3,8 +3,7 @@ package org.querypal.conditions
 import org.querypal.logic.Model.*
 import org.querypal.logic.FragmentOperations.*
 import org.querypal.logic.Join.*
-import org.querypal.logic.Query
-import org.querypal.logic.QueryType.*
+import org.querypal.logic.{Query, QueryType}
 
 final class Select[A, B <: Model[A], T <: QueryType](model: B)(query: Query[T]) {
   def select: Where[A, B, T] & Joinable[A, B, T] =

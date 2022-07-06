@@ -4,10 +4,10 @@ import org.querypal.logic.Model.*
 import doobie.util.fragment.Fragment
 import doobie.implicits.*
 import org.querypal.logic.FragmentOperations.*
-import org.querypal.logic.{ConditionList, Query}
-import org.querypal.logic.QueryType._
+import org.querypal.logic.{Completable, ConditionList, Query, QueryType}
 import ConditionalHelpers.*
 import org.querypal.logic.Join.{BiRelation, Joinable, JoinedJoinable, joinedSelect}
+import org.querypal.logic.Completable.*
 
 /** Conditional helps you construct the conditions of your query. With A being the entity queried
   * and B being the object containing the modeled fields of A. On each step, B is provided to take
@@ -40,7 +40,7 @@ final class Conditional[A, B <: Model[A], T <: QueryType](model: B)(query: Query
 
   def constructString: String = query.constructString
 
-  def getQuery: Query[T] = query
+  def executeOps[A](using TP: TypeProvider[T, A]): TP.R = TP.apply(query)
 
 final class JoinedConditional[A, B, C <: Model[B], T <: QueryType](model: C)(query: Query[T])
     extends JoinedJoinable[A, B, C, T], Completable[T]:
@@ -68,7 +68,7 @@ final class JoinedConditional[A, B, C <: Model[B], T <: QueryType](model: C)(que
 
   def constructString: String = query.constructString
 
-  def getQuery: Query[T] = query
+  def executeOps[A](using TP: TypeProvider[T, A]): TP.R = TP.apply(query)
 
 object ConditionalHelpers:
   def boundQuery[A, B <: Model[A], T <: QueryType](

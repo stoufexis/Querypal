@@ -21,16 +21,16 @@ final class QueryBuilder[A, B <: Model[A]](model: B)(
 
   val table = meta.table
 
-  def select: Where[A, B, QueryType.Select] & Joinable[A, B, QueryType.Select] =
+  def select: Where[A, B, QueryType.Select.type] & Joinable[A, B, QueryType.Select.type] =
     new WhereImpl(model)(Query(command = Commands.select, table = table))
 
-  def delete: Where[A, B, QueryType.Delete] =
+  def delete: Where[A, B, QueryType.Delete.type] =
     new WhereImpl(model)(Query(command = Commands.delete, table = table))
 
-  def insert: Insert[A, QueryType.Insert] =
+  def insert: Insert[A, QueryType.Insert.type] =
     new Insert(Query(command = Commands.insert, table = table))
 
-  def update(f: B => SetArgument): Set[A, B, QueryType.Update] =
+  def update(f: B => SetArgument): Set[A, B, QueryType.Update.type] =
     new Set(model)(
       Query(
         command = Commands.update,

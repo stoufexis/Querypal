@@ -33,7 +33,7 @@ object DeriveModelMeta:
 
   inline def getElemLabels[A <: Tuple]: List[String] =
     inline erasedValue[A] match {
-      case _: EmptyTuple => Nil
+      case _: EmptyTuple     => Nil
       case _: (head *: tail) =>
         val headElementLabel  = constValue[head].toString
         val tailElementLabels = getElemLabels[tail]
@@ -45,7 +45,7 @@ object DeriveModelMeta:
 
   inline def getTypeclassInstances[A <: Tuple]: List[ToDoobieString[Any]] =
     inline erasedValue[A] match {
-      case _: EmptyTuple => Nil
+      case _: EmptyTuple     => Nil
       case _: (head *: tail) =>
         val headTypeClass = summonInline[ToDoobieString[head]]
 
@@ -62,9 +62,12 @@ object DeriveModelMeta:
       m: Mirror.ProductOf[A]
   )(tableName: String)(fields: Seq[Column[?, ?]]) =
     new ModelMeta[A] {
+      private val elemLabels = getElemLabels[m.MirroredElemLabels]
+
       val table            = Table(tableName)
-      val primaryKeyName   = getElemLabels[m.MirroredElemLabels](0)
+      val primaryKeyName   = elemLabels.head
       val typeDescriptions = fields.map(_.toTypeDescription)
+      val columnNames      = elemLabels
 
       def map(a: A): (Seq[String], Seq[String]) = {
         val elemInstances = getTypeclassInstances[m.MirroredElemTypes]

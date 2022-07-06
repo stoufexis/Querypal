@@ -37,6 +37,7 @@ object Model:
     val primaryKeyName: String
     val table: Table
     val typeDescriptions: Seq[String]
+    val columnNames: Seq[String]
 
     /** Deconstructs an instance of A so it can be used in insert queries
       */

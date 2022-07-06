@@ -8,7 +8,7 @@ import org.querypal.logic.FragmentOperations.*
 import org.querypal.logic.FragmentOperations.SqlOperations.*
 import org.querypal.conditions.WhereImpl
 import org.querypal.logic.Query
-import org.querypal.logic.QueryType.*
+import org.querypal.logic.QueryType
 
 /** Set lets you construct an update command step by step, providing you with B to get
   * autocompletion and type safe set arguments

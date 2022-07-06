@@ -28,8 +28,10 @@ object FragmentOperations:
     */
   trait FieldOps[A]:
     extension [B](
-        x: Column[B, A]
-    )(using meta: ModelMeta[B], toDoobie: ToDoobieString[A])
+        x: Column[B, A])(
+        using
+        meta: ModelMeta[B],
+        toDoobie: ToDoobieString[A])
       def ===(y: A): EqualsCondition = y match
         case z: Int    =>
           s"${meta.table.name}" ++ s"." ++ s"${x.getName} = ${(z: Int)} "
@@ -90,10 +92,9 @@ object FragmentOperations:
     val delete: Command = "delete from "
     val select: Command = "select * from "
 
-  case class Table(private val nameStr: String) {
+  case class Table(private val nameStr: String):
     val name: Argument       = nameStr
     val nameAsString: String = nameStr
-  }
 
   /** A trait that enables any part of the pipeline to become a terminal step
     */
@@ -115,6 +116,7 @@ object FragmentOperations:
     val on: Argument        = " on "
 
   object Argument:
+
     extension (str: String) def toArgument: Argument = str
 
     extension (str: Argument) def toString: String = str
@@ -126,11 +128,5 @@ object FragmentOperations:
     given Monoid[Argument] with
       def empty                                                       = ""
       def combine(x: Argument, y: String | Argument): EqualsCondition = x + y
-
-  trait Completable[T <: QueryType]:
-    def complete: Argument
-    def construct: Fragment
-    def constructString: String
-    def getQuery: Query[T]
 
   val * : "* " = "* "

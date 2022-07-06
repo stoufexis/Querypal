@@ -4,7 +4,7 @@ import cats.implicits._
 import Model._
 import Relation._
 import org.querypal.conditions.JoinedSelect
-import FragmentOperations.{SqlOperations, Completable, Argument, Arguments}
+import FragmentOperations.{SqlOperations, Argument, Arguments}
 import org.querypal.logic.QueryType._
 
 object Join:

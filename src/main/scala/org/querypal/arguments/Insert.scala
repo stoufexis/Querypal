@@ -9,9 +9,8 @@ import doobie.util.fragment.Fragment
 
 import scala.deriving.Mirror
 import scala.compiletime.{constValue, erasedValue, summonInline}
-import org.querypal.logic.FragmentOperations.Completable
-import org.querypal.logic.Query
-import org.querypal.logic.QueryType.*
+import org.querypal.logic.{Completable, Query, QueryType}
+import org.querypal.logic.Completable.*
 
 /** Insert receives an instance of A, and maps it to an insert values statement
   */
@@ -24,7 +23,7 @@ final class Insert[A, T <: QueryType](query: Query[T])(using meta: ModelMeta[A])
     val foldedValues =
       SqlOperations.commaSeparatedParened(meta.map(entity)._2.toList)
 
-    new Completable[T] {
+    new Completable[T]:
       val query: Query[T] =
         self.query.copy(arguments =
           self.query.arguments :+
@@ -38,6 +37,6 @@ final class Insert[A, T <: QueryType](query: Query[T])(using meta: ModelMeta[A])
 
       def constructString: String = query.constructString
 
-      def getQuery: Query[T] = query
-    }
+      def executeOps[A](using TP: TypeProvider[T, A]): TP.R = TP.apply(query)
+
 }
